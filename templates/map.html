@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nearby Doctors - BioLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glow-text {
+            background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px #38bdf8cc);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 8px; }
+        /* Custom styles for Google Maps InfoWindow */
+        .gm-style-iw {
+            background-color: #1f2937 !important; /* bg-gray-800 */
+            color: #f3f4f6; /* text-gray-100 */
+            border-radius: 0.75rem !important;
+            padding: 1rem !important;
+        }
+        .gm-style-iw-d { overflow: hidden !important; }
+        .gm-style .gm-style-iw-c { padding: 0 !important; }
+        .gm-style .gm-style-iw-t::after { background: #1f2937 !important; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex min-h-screen">
+
+    <!-- User Sidebar Navigation -->
+    {% include 'components/user_sidebar.html' %}
+
+    <main class="ml-16 w-full p-4 md:p-8 flex flex-col h-screen">
+        <header class="mb-4">
+            <h1 class="text-3xl md:text-4xl font-bold glow-text">Find a Doctor Near You</h1>
+            <p class="text-blue-300 mt-1">Use the interactive map to locate our registered specialists.</p>
+        </header>
+
+        <div class="flex-shrink-0 bg-gray-800/50 p-3 rounded-xl shadow-lg border border-gray-700 mb-4">
+            <form method="GET" class="flex flex-wrap items-center gap-4">
+                <input type="text" name="city" value="{{ search_city }}" placeholder="Enter city or area..." class="flex-grow bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition">
+                <select name="specialty" class="bg-gray-700 border-gray-600 text-white rounded-lg p-2 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition">
+                    <option value="">All Specializations</option>
+                    {% for spec in specialties %}
+                    <option value="{{ spec }}" {% if spec == search_specialty %}selected{% endif %}>{{ spec }}</option>
+                    {% endfor %}
+                </select>
+                <div class="flex items-center space-x-2 text-sm">
+                    <label for="radius">Radius:</label>
+                    <input type="range" id="radius" name="radius" min="1" max="50" value="{{ search_radius }}" 
+                           class="w-24 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                           onchange="updateRadiusLabel(this.value)">
+                    <span id="radiusLabel" class="text-cyan-400 font-semibold">{{ search_radius }} km</span>
+                </div>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+                <button type="button" onclick="getCurrentLocation()" class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-lg hover:bg-green-700 transition">
+                    <i class="fas fa-crosshairs mr-2"></i>My Location
+                </button>
+            </form>
+        </div>
+
+        <div class="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-4 overflow-hidden">
+            <div id="map" class="lg:col-span-2 w-full h-full rounded-xl border border-gray-700 min-h-[50vh]"></div>
+            
+            <div class="lg:col-span-1 h-full overflow-y-auto space-y-3 pr-1">
+                {% if doctors %}
+                    <div class="mb-4 text-sm text-gray-400">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        Found {{ doctors|length }} doctors near you
+                    </div>
+                    {% for doctor in doctors %}
+                    <div class="bg-gray-800/50 p-4 rounded-xl shadow-lg border border-gray-700 hover:border-cyan-500 transition-all duration-300 flex items-start space-x-4">
+                        <img src="https://ui-avatars.com/api/?name={{ doctor.name|replace(' ', '+') }}&background=0D8ABC&color=fff&rounded=true" alt="{{ doctor.name }}" class="w-16 h-16 rounded-full flex-shrink-0">
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-white">{{ doctor.name }}</h3>
+                            <p class="text-sm text-cyan-400">{{ doctor.specialty }}</p>
+                            <div class="flex items-center mt-1">
+                                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                <span class="text-gray-400 text-xs ml-1">{{ doctor.rating }} ({{ doctor.reviews }} reviews)</span>
+                            </div>
+                            <div class="flex items-center mt-1 text-xs">
+                                <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i>
+                                <span class="text-gray-400">{{ doctor.distance }} km away</span>
+                                <span class="ml-3 px-2 py-1 rounded-full text-xs {{ 'bg-green-600/20 text-green-400' if 'Available Now' in doctor.availability else 'bg-yellow-600/20 text-yellow-400' }}">
+                                    {{ doctor.availability }}
+                                </span>
+                            </div>
+                            <div class="flex space-x-2 mt-3">
+                                <a href="{{ url_for('appointments') }}?doctor_id={{ doctor.id }}" class="text-xs bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-md transition">
+                                    <i class="fas fa-calendar-plus mr-1"></i>Book Appointment
+                                </a>
+                                <button onclick="startVideoCall({{ doctor.id }})" class="text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md transition">
+                                    <i class="fas fa-video mr-1"></i>Video Call
+                                </button>
+                                <button onclick="focusDoctor({{ doctor.lat }}, {{ doctor.lng }})" class="text-xs bg-gray-600 hover:bg-gray-700 text-white py-1 px-3 rounded-md transition">
+                                    <i class="fas fa-eye mr-1"></i>View on Map
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="text-gray-400 mb-4">
+                            <i class="fas fa-search text-4xl"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold mb-2">No doctors found</h3>
+                        <p class="text-gray-400 mb-4">Try adjusting your search criteria or expanding the search radius.</p>
+                        <button onclick="expandSearch()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+                            <i class="fas fa-expand-arrows-alt mr-2"></i>Expand Search
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function initMap() {
+            // Get doctor data from Flask/Jinja2
+            const doctors = {{ doctors|tojson|safe if doctors else '[]' }};
+            const userLocation = {{ user_location|tojson|safe if user_location else '{ "lat": 22.3039, "lng": 70.8022 }' }};
+
+            // Dark theme for the map
+            const mapStyle = [
+                { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+                { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+                { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+                { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+                { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+                { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+                { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+                { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+                { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+                { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+                { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+                { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] },
+            ];
+            
+            // Store map globally
+            window.doctorMap = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: userLocation,
+                styles: mapStyle,
+                disableDefaultUI: true,
+                zoomControl: true,
+            });
+
+            const infoWindow = new google.maps.InfoWindow();
+
+            doctors.forEach(doctor => {
+                const marker = new google.maps.Marker({
+                    position: { lat: doctor.lat, lng: doctor.lng },
+                    map: window.doctorMap,
+                    title: doctor.name,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: doctor.availability.includes('Available Now') ? "#10b981" : "#22d3ee",
+                        fillOpacity: 1,
+                        strokeWeight: 2,
+                        strokeColor: "#ffffff",
+                    },
+                });
+
+                marker.addListener("click", () => {
+                    const availabilityColor = doctor.availability.includes('Available Now') ? 'text-green-400' : 'text-yellow-400';
+                    const contentString = `
+                        <div class="p-3 bg-gray-800 text-gray-100 min-w-[280px]">
+                            <h3 class="font-bold text-lg text-white">${doctor.name}</h3>
+                            <p class="text-sm text-cyan-400 mb-1">${doctor.specialty}</p>
+                            <div class="flex items-center mb-2">
+                                <span class="text-yellow-400">★</span>
+                                <span class="text-xs text-gray-300 ml-1">${doctor.rating} (${doctor.reviews} reviews)</span>
+                            </div>
+                            <p class="text-xs ${availabilityColor} mb-2">${doctor.availability}</p>
+                            <p class="text-xs text-gray-400 mb-3">${doctor.distance} km away</p>
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('appointments') }}?doctor_id=${doctor.id}" class="text-xs bg-green-600 hover:bg-green-700 text-white py-1 px-2 rounded transition">
+                                    Book Now
+                                </a>
+                                <button onclick="startVideoCall(${doctor.id})" class="text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded transition">
+                                    Video Call
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    infoWindow.setContent(contentString);
+                    infoWindow.open(window.doctorMap, marker);
+                });
+
+                // Store marker reference for focusing
+                doctor.marker = marker;
+            });
+        }
+
+        // Additional map functionality
+        function updateRadiusLabel(value) {
+            document.getElementById('radiusLabel').textContent = value + ' km';
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    window.doctorMap.setCenter(pos);
+                    window.doctorMap.setZoom(14);
+                    
+                    // Add user location marker
+                    new google.maps.Marker({
+                        position: pos,
+                        map: window.doctorMap,
+                        title: 'Your Location',
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 8,
+                            fillColor: "#ef4444",
+                            fillOpacity: 1,
+                            strokeWeight: 2,
+                            strokeColor: "#ffffff",
+                        },
+                    });
+                    
+                    showNotification('Location updated!', 'success');
+                }, () => {
+                    showNotification('Unable to retrieve your location', 'error');
+                });
+            } else {
+                showNotification('Geolocation is not supported by this browser', 'error');
+            }
+        }
+
+        function focusDoctor(lat, lng) {
+            if (window.doctorMap) {
+                window.doctorMap.setCenter({lat: lat, lng: lng});
+                window.doctorMap.setZoom(16);
+            }
+        }
+
+        function startVideoCall(doctorId) {
+            showNotification('Connecting to video call...', 'info');
+            window.open(`{{ url_for('contact_doctors') }}?doctor_id=${doctorId}&video=true`, '_blank', 'width=1200,height=800');
+        }
+
+        function expandSearch() {
+            const radiusSlider = document.getElementById('radius');
+            radiusSlider.value = Math.min(50, parseInt(radiusSlider.value) + 10);
+            updateRadiusLabel(radiusSlider.value);
+            document.querySelector('form').submit();
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600' : 
+                type === 'error' ? 'bg-red-600' : 
+                'bg-blue-600'
+            } text-white`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ Maps_API_KEY }}&callback=initMap&libraries=places" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+</body>
+</html>

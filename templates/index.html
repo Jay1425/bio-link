@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{%block title%}BioLink – Smart Healthcare Monitoring & Emergency Response{%endblock%}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=API&libraries=places"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Poppins', 'Inter', sans-serif; }
+    /* Glowing gradient text */
+    .glow-text {
+      background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 8px #38bdf8cc);
+    }
+    /* Animated background shapes */
+    .bg-animate {
+      position: absolute;
+      z-index: 0;
+      pointer-events: none;
+      width: 100vw;
+      height: 100%;
+      overflow: hidden;
+    }
+    .shape {
+      position: absolute;
+      border-radius: 9999px;
+      opacity: 0.18;
+      filter: blur(40px);
+      animation: float 12s ease-in-out infinite alternate;
+    }
+    .shape1 { background: #38bdf8; width: 320px; height: 320px; top: 10%; left: 5%; animation-delay: 0s; }
+    .shape2 { background: #4ade80; width: 220px; height: 220px; top: 60%; left: 70%; animation-delay: 2s; }
+    .shape3 { background: #22d3ee; width: 180px; height: 180px; top: 30%; left: 80%; animation-delay: 4s; }
+    @keyframes float {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-40px) scale(1.1); }
+    }
+    /* Sticky nav slide/fade */
+    .nav-hidden { transform: translateY(-100%); opacity: 0; transition: all 0.4s cubic-bezier(.4,0,.2,1); }
+    .nav-visible { transform: translateY(0); opacity: 1; transition: all 0.4s cubic-bezier(.4,0,.2,1); }
+    /* Search bar neon focus */
+    .neon-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #38bdf8, 0 0 8px #38bdf8;
+      border-color: #38bdf8;
+      background: #1e293b;
+      color: #fff;
+    }
+    /* CTA pulse */
+    .pulse {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 #38bdf866; }
+      50% { box-shadow: 0 0 0 8px #38bdf822; }
+    }
+    /* Card hover */
+    .feature-card {
+      transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 8px 32px 0 #38bdf822;
+      opacity: 0.98;
+    }
+    /* Process step animation */
+    .step-hidden { opacity: 0; transform: translateY(40px); transition: all 0.7s cubic-bezier(.4,0,.2,1); }
+    .step-visible { opacity: 1; transform: translateY(0); transition: all 0.7s cubic-bezier(.4,0,.2,1); }
+    /* Carousel */
+    .carousel-item { display: none; }
+    .carousel-item.active { display: block; }
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 8px; background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 8px; }
+    /* Animated gradient line between sections */
+    .section-divider {
+      height: 4px;
+      width: 100%;
+      background: linear-gradient(90deg, #38bdf8 0%, #22d3ee 50%, #4ade80 100%);
+      opacity: 0.7;
+      border-radius: 2px;
+      margin: 0 auto;
+      animation: gradientMove 6s linear infinite;
+      background-size: 200% 100%;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    /* Info cards animation */
+    .info-card { opacity: 0; transform: translateY(40px); transition: all 0.7s cubic-bezier(.4,0,.2,1); }
+    .info-card.visible { opacity: 1; transform: translateY(0); }
+    /* AI Report Card Hover */
+    .report-card {
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .report-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 15px #38bdf8;
+    }
+    /*hospital search*/
+    .neon-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 10px #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-[#0f172a] text-white relative overflow-x-hidden">
+  <!-- Public Navbar -->
+  {% include 'components/public_navbar.html' %}
+  <section class="relative pt-32 md:pt-40 pb-16 bg-[#0f172a] overflow-hidden" id="home">
+    <div class="bg-animate">
+      <div class="shape shape1"></div>
+      <div class="shape shape2"></div>
+      <div class="shape shape3"></div>
+    </div>
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between relative z-10 px-4">
+      <div class="md:w-1/2 space-y-6">
+        <h1 class="text-4xl md:text-6xl font-bold glow-text leading-tight">BioLink</h1>
+        <p class="text-xl md:text-2xl text-blue-300 font-semibold">Smart Healthcare Monitoring & Emergency Response System.</p>
+        <p class="text-blue-100 text-base md:text-lg">Connect with trusted doctors, monitor your vitals in real-time, and stay protected with AI-powered smart alerts, ensuring peace of mind for you and your loved ones.</p>
+        <div class="flex gap-4 mt-4 flex-wrap">
+          <a href="{{url_for('signup')}}" class="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold text-lg shadow hover:bg-blue-600 transition transform hover:scale-105">Get Started</a>
+          <a href="#demo" class="px-6 py-3 bg-[#1e293b] border border-blue-400 text-blue-300 rounded-lg font-semibold text-lg shadow hover:bg-blue-900 transition transform hover:scale-105">Watch Demo</a>
+        </div>
+      </div>
+      <div class="md:w-1/2 flex justify-center mt-10 md:mt-0">
+        <img src="https://cdn.jsdelivr.net/gh/biolink-assets/doctor-hologram.svg" alt="Doctor Hologram" class="w-72 md:w-[24rem] animate-float drop-shadow-2xl" onerror="this.style.display='none'" />
+        <svg class="w-72 md:w-[24rem]" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none">
+          <ellipse cx="160" cy="160" rx="120" ry="80" fill="#1e293b"/>
+          <rect x="110" y="90" width="100" height="140" rx="30" fill="#38bdf8"/>
+          <circle cx="160" cy="130" r="28" fill="#fff"/>
+          <rect x="140" y="160" width="40" height="50" rx="12" fill="#fff"/>
+        </svg>
+      </div>
+    </div>
+    <div class="flex justify-center mt-10">
+      <a href="#search" class="animate-bounce">
+        <svg width="36" height="36" fill="none" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/></svg>
+      </a>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <!-- 🔍 Search Section -->
+  <section id="search" class="relative z-10 max-w-3xl mx-auto -mt-8 mb-12 px-4">
+  <form id="hospital-form" class="flex items-center bg-[#1e293b] rounded-xl shadow-lg border-2 border-blue-800 focus-within:border-blue-400 transition-all">
+    <input
+      type="text"
+      id="search-box"
+      placeholder="Find Verified Hospitals Near You"
+      class="flex-1 px-6 py-4 text-lg bg-transparent neon-input rounded-l-xl focus:ring-0 text-white placeholder-blue-300"
+    />
+    <button
+      id="go-button"
+      type="submit"
+      class="px-6 py-4 bg-blue-500 text-white font-semibold rounded-r-xl hover:bg-blue-600 transition relative overflow-hidden"
+    >
+      <span class="relative z-10">Search</span>
+    </button>
+  </form>
+    <div class="section-divider mt-12 mb-2"></div>
+  </section>
+
+  <section id="about" class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 glow-text">About BioLink</h2>
+    <div class="flex flex-col md:flex-row items-center gap-12">
+      <div class="md:w-1/2 space-y-6 text-lg text-blue-100">
+        <p>BioLink was founded with a singular vision: to revolutionize personal healthcare by integrating cutting-edge AI with accessible monitoring and rapid emergency response. We believe everyone deserves proactive, intelligent health management at their fingertips.</p>
+        <p>Our journey began with a small team of medical professionals, AI engineers, and design thinkers united by a passion to make a real difference. We saw the gap in reactive healthcare and envisioned a system that could predict, alert, and connect, preventing health crises before they fully develop.</p>
+        <p>Today, BioLink stands as a testament to that vision. We are committed to continuous innovation, ensuring our platform remains at the forefront of digital health technology while upholding the highest standards of data privacy and user trust.</p>
+      </div>
+      <div class="md:w-1/2 flex justify-center">
+        <img src="{{url_for('static', filename='image.png')}}" alt="About Us Illustration" class="rounded-xl shadow-lg border border-blue-800" />
+      </div>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section id="features" class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 glow-text">What Makes BioLink Smart?</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+      <div class="feature-card bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center hover:shadow-2xl border border-blue-900">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><rect x="8" y="12" width="32" height="24" rx="12" stroke="#38bdf8" stroke-width="3"/><circle cx="24" cy="24" r="6" stroke="#4ade80" stroke-width="3"/></svg>
+        <h3 class="mt-4 font-semibold text-lg text-blue-200">Real-time Wearable Sync</h3>
+        <p class="text-blue-100 text-sm mt-2">Seamlessly connect your smart band or watch for live health data, including heart rate, blood pressure, and activity levels.</p>
+      </div>
+      <div class="feature-card bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center hover:shadow-2xl border border-blue-900">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><path d="M24 8c8.837 0 16 7.163 16 16s-7.163 16-16 16S8 32.837 8 24 15.163 8 24 8Z" stroke="#38bdf8" stroke-width="3"/><path d="M24 16v8l6 6" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3 class="mt-4 font-semibold text-lg text-blue-200">AI Disease Prediction</h3>
+        <p class="text-blue-100 text-sm mt-2">Advanced AI models analyze your data to predict potential health risks, focusing on early detection for conditions like diabetes and cardiovascular issues.</p>
+      </div>
+      <div class="feature-card bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center hover:shadow-2xl border border-blue-900">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><rect x="12" y="12" width="24" height="24" rx="8" stroke="#38bdf8" stroke-width="3"/><path d="M16 24h16" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3 class="mt-4 font-semibold text-lg text-blue-200">Instant Health Report Scanning</h3>
+        <p class="text-blue-100 text-sm mt-2">Upload and scan medical reports (PDF, JPG) for instant AI-powered analysis, highlighting key findings and potential concerns.</p>
+      </div>
+      <div class="feature-card bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center hover:shadow-2xl border border-blue-900">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" stroke="#38bdf8" stroke-width="3"/><path d="M24 16v8l6 6" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3 class="mt-4 font-semibold text-lg text-blue-200">Smart Emergency Alerts</h3>
+        <p class="text-blue-100 text-sm mt-2">Automatic alerts sent to your emergency contacts and nearest hospitals with precise location data during critical events.</p>
+      </div>
+      <div class="feature-card bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center hover:shadow-2xl border border-blue-900">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><path d="M8 24c0-8.837 7.163-16 16-16s16 7.163 16 16-7.163 16-16 16S8 32.837 8 24Z" stroke="#38bdf8" stroke-width="3"/><path d="M24 16v8l6 6" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3 class="mt-4 font-semibold text-lg text-blue-200">Community Rescue Network</h3>
+        <p class="text-blue-100 text-sm mt-2">Connect with a localized network of trained volunteers and first responders for rapid community-level assistance.</p>
+      </div>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section id="reports" class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 glow-text">See Your Health, Smarter.</h2>
+    <p class="text-center text-lg text-blue-200 mb-12 max-w-2xl mx-auto">BioLink's AI generates comprehensive, easy-to-understand reports from your wearable data and uploaded medical documents, giving you actionable insights into your health trends.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div class="space-y-6">
+        <div class="report-card bg-[#1e293b] rounded-xl p-8 shadow-lg border border-blue-800">
+          <h3 class="text-2xl font-bold text-blue-300 mb-3">Personalized Health Overview</h3>
+          <p class="text-blue-100">Visualize your vital signs, activity levels, and sleep patterns over time with intuitive graphs and charts. Identify trends and potential areas for improvement.</p>
+          <ul class="list-disc list-inside text-blue-200 mt-4 space-y-2">
+            <li>Heart Rate Variability (HRV) analysis for stress insights.</li>
+            <li>Sleep quality scores and personalized recommendations.</li>
+            <li>Detailed activity breakdown: steps, calories, active minutes.</li>
+          </ul>
+        </div>
+        <div class="report-card bg-[#1e293b] rounded-xl p-8 shadow-lg border border-blue-800">
+          <h3 class="text-2xl font-bold text-blue-300 mb-3">AI-Powered Risk Assessment</h3>
+          <p class="text-blue-100">Our predictive AI analyzes your data to provide early warnings for potential health conditions, focusing on prevention.</p>
+          <ul class="list-disc list-inside text-blue-200 mt-4 space-y-2">
+            <li>Early indicators for cardiovascular health.</li>
+            <li>Risk assessment for metabolic disorders like diabetes.</li>
+            <li>Personalized recommendations for lifestyle adjustments.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex justify-center">
+        <img src="https://via.placeholder.com/600x450/1e293b/4ade80?text=AI+Report+Dashboard+Preview" alt="AI Report Dashboard" class="rounded-xl shadow-2xl border border-blue-700 report-card" />
+      </div>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section id="how" class="bg-[#111827] py-16 px-4">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 glow-text">How BioLink Works</h2>
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 md:gap-0">
+      <div class="flex-1 flex flex-col items-center step step-hidden">
+        <div class="bg-[#1e293b] rounded-full p-4 shadow-lg mb-4 border border-blue-900">
+          <svg width="40" height="40" fill="none" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" stroke="#38bdf8" stroke-width="3"/><path d="M20 12v16M12 20h16" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        </div>
+        <h4 class="font-semibold text-lg text-blue-200">Register & Sync Device</h4>
+        <p class="text-blue-100 text-sm text-center mt-2">Create your secure BioLink account and easily connect your smart wearable.</p>
+      </div>
+      <div class="flex-1 flex flex-col items-center step step-hidden">
+        <div class="bg-[#1e293b] rounded-full p-4 shadow-lg mb-4 border border-blue-900">
+          <svg width="40" height="40" fill="none" viewBox="0 0 40 40"><rect x="8" y="12" width="24" height="16" rx="8" stroke="#38bdf8" stroke-width="3"/><circle cx="20" cy="20" r="4" stroke="#4ade80" stroke-width="3"/></svg>
+        </div>
+        <h4 class="font-semibold text-lg text-blue-200">Live Health Tracking</h4>
+        <p class="text-blue-100 text-sm text-center mt-2">Your device continuously streams vital health metrics to your personalized dashboard.</p>
+      </div>
+      <div class="flex-1 flex flex-col items-center step step-hidden">
+        <div class="bg-[#1e293b] rounded-full p-4 shadow-lg mb-4 border border-blue-900">
+          <svg width="40" height="40" fill="none" viewBox="0 0 40 40"><rect x="12" y="12" width="16" height="16" rx="6" stroke="#38bdf8" stroke-width="3"/><path d="M16 20h8" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        </div>
+        <h4 class="font-semibold text-lg text-blue-200">Upload Reports for AI Analysis</h4>
+        <p class="text-blue-100 text-sm text-center mt-2">Securely upload any medical reports for our AI to analyze and cross-reference.</p>
+      </div>
+      <div class="flex-1 flex flex-col items-center step step-hidden">
+        <div class="bg-[#1e293b] rounded-full p-4 shadow-lg mb-4 border border-blue-900">
+          <svg width="40" height="40" fill="none" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" stroke="#38bdf8" stroke-width="3"/><path d="M20 12v8l6 6" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        </div>
+        <h4 class="font-semibold text-lg text-blue-200">Instant Alerts & Video Consultations</h4>
+        <p class="text-blue-100 text-sm text-center mt-2">Receive smart alerts and connect with verified doctors for immediate consultations.</p>
+      </div>
+    </div>
+    <div class="hidden md:flex justify-between items-center max-w-4xl mx-auto mt-[-60px] relative z-0">
+      <div class="w-[20%] h-2 bg-gradient-to-r from-transparent to-blue-500 rounded-full animate-pulse-short"></div>
+      <div class="w-[20%] h-2 bg-gradient-to-r from-blue-500 via-blue-400 to-green-500 rounded-full animate-pulse-short" style="animation-delay: 0.5s;"></div>
+      <div class="w-[20%] h-2 bg-gradient-to-r from-green-500 via-green-400 to-blue-500 rounded-full animate-pulse-short" style="animation-delay: 1s;"></div>
+      <div class="w-[20%] h-2 bg-gradient-to-r from-blue-500 to-transparent rounded-full animate-pulse-short" style="animation-delay: 1.5s;"></div>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section class="max-w-5xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center justify-between gap-12">
+    <div class="flex-1 flex flex-col items-center text-center">
+      <span class="text-5xl font-bold text-blue-400 counter" data-target="500000">0</span>
+      <p class="text-lg mt-2 text-blue-200">Trusted by <span class="font-semibold">500,000+</span> users worldwide.</p>
+    </div>
+    <div class="flex-1 flex flex-col items-center text-center">
+      <span class="text-5xl font-bold text-green-400 counter" data-target="10">0</span>
+      <p class="text-lg mt-2 text-blue-200">AI-powered predictions for <span class="font-semibold">10+</span> critical diseases.</p>
+    </div>
+    <div class="flex-1 flex flex-col items-center text-center">
+      <span class="text-5xl font-bold text-cyan-400 counter" data-target="24">0</span>
+      <p class="text-lg mt-2 text-blue-200">Available <span class="font-semibold">24/7</span> for emergencies.</p>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section class="bg-[#111827] py-16 px-4">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 glow-text">What Our Users Say</h2>
+    <div class="max-w-3xl mx-auto relative">
+      <div class="carousel-item active text-center">
+        <div class="flex flex-col items-center">
+          <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" stroke="#38bdf8" stroke-width="3"/><path d="M16 32c0-4 4-8 8-8s8 4 8 8" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+          <p class="text-lg mt-4 text-blue-100">“BioLink helped me get instant help during a health emergency. The AI alerts are a lifesaver and connected me with help faster than I thought possible!”</p>
+          <span class="mt-2 font-semibold text-blue-400">– Priya S., Student</span>
+        </div>
+      </div>
+      <div class="carousel-item text-center">
+        <div class="flex flex-col items-center">
+          <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" stroke="#38bdf8" stroke-width="3"/><path d="M16 32c0-4 4-8 8-8s8 4 8 8" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+          <p class="text-lg mt-4 text-blue-100">“The wearable sync and AI reports make it incredibly easy to track my health trends and share relevant data seamlessly with my doctor.”</p>
+          <span class="mt-2 font-semibold text-blue-400">– Dr. Patel, Physician</span>
+        </div>
+      </div>
+      <div class="carousel-item text-center">
+        <div class="flex flex-col items-center">
+          <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" stroke="#38bdf8" stroke-width="3"/><path d="M16 32c0-4 4-8 8-8s8 4 8 8" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+          <p class="text-lg mt-4 text-blue-100">“BioLink’s emergency network is a game-changer for our college community.”</p>
+          <span class="mt-2 font-semibold text-blue-400">– GTU Student Council</span>
+        </div>
+      </div>
+      <div class="flex justify-center gap-4 mt-8">
+        <button class="carousel-dot w-4 h-4 rounded-full bg-blue-700 hover:bg-blue-400 transition" data-index="0"></button>
+        <button class="carousel-dot w-4 h-4 rounded-full bg-blue-700 hover:bg-blue-400 transition" data-index="1"></button>
+        <button class="carousel-dot w-4 h-4 rounded-full bg-blue-700 hover:bg-blue-400 transition" data-index="2"></button>
+      </div>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section class="relative py-16 px-4">
+    <div class="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-900 via-blue-700 to-green-900 opacity-80 animate-pulse-slow rounded-2xl blur-2xl"></div>
+    <div class="max-w-5xl mx-auto relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="info-card bg-[#1e293b]/90 rounded-xl p-8 shadow-lg border border-blue-800 flex flex-col items-center text-center">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" stroke="#38bdf8" stroke-width="3"/><path d="M16 32c0-4 4-8 8-8s8 4 8 8" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3 class="mt-4 font-bold text-xl text-blue-200">Our Mission</h3>
+        <p class="text-blue-100 mt-2">Empowering lives with smart, accessible, and proactive healthcare solutions for everyone, everywhere. We aim to bridge the gap between technology and well-being.</p>
+      </div>
+      <div class="info-card bg-[#1e293b]/90 rounded-xl p-8 shadow-lg border border-blue-800 flex flex-col items-center text-center">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><rect x="8" y="12" width="32" height="24" rx="12" stroke="#38bdf8" stroke-width="3"/><circle cx="24" cy="24" r="6" stroke="#4ade80" stroke-width="3"/></svg>
+        <h3 class="mt-4 font-bold text-xl text-blue-200">Our Vision</h3>
+        <p class="text-blue-100 mt-2">To be the world’s most trusted digital health companion, seamlessly blending AI, compassionate care, and innovative technology for a healthier, safer tomorrow for all.</p>
+      </div>
+      <div class="info-card bg-[#1e293b]/90 rounded-xl p-8 shadow-lg border border-blue-800 flex flex-col items-center text-center">
+        <svg width="48" height="48" fill="none" viewBox="0 0 48 48"><path d="M24 8c8.837 0 16 7.163 16 16s-7.163 16-16 16S8 32.837 8 24 15.163 8 24 8Z" stroke="#38bdf8" stroke-width="3"/><path d="M24 16v8l6 6" stroke="#4ade80" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3 class="mt-4 font-bold text-xl text-blue-200">Our Values</h3>
+        <p class="text-blue-100 mt-2">Innovation, trust, inclusivity, rapid response, and user-centricity—these core values guide every decision and development at BioLink.</p>
+      </div>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section id="team" class="max-w-7xl mx-auto px-4 py-16">
+    <h2 class="text-3xl md:text-4xl font-bold text-center mb-10 glow-text">Meet the Innovators</h2>
+    <p class="text-center text-lg text-blue-200 mb-12 max-w-2xl mx-auto">Behind BioLink is a dedicated team of experts in AI, healthcare, and technology, committed to building a healthier future for you.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center border border-blue-900">
+        <img src="{{url_for('static', filename='photo_2025-07-25_15-21-32.jpg')}}" alt="Team Member Dr. A" class="w-24 h-24 rounded-full object-cover mb-4 border-2 border-blue-400" />
+        <h3 class="font-bold text-xl text-blue-200">Jay raychura</h3>
+        <p class="text-blue-300 text-sm">Project Leader AI specialist</p>
+        <p class="text-blue-100 text-sm mt-2">Over digital health platform, specializing in AI Models that predict Dignosis in medical field.</p>
+      </div>
+      <div class="bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center border border-blue-900">
+        <img src="{{url_for('static', filename='pujan.jpg')}}" alt="Team Member Eng. B" class="w-24 h-24 rounded-full object-cover mb-4 border-2 border-cyan-400" />
+        <h3 class="font-bold text-xl text-blue-200">Pujan Chudasama</h3>
+        <p class="text-blue-300 text-sm">lead frontend UI handler</p>
+        <p class="text-blue-100 text-sm mt-2">Pioneering advancements in UI/UX Fronted and health data collector.</p>
+      </div>
+      <div class="bg-[#1e293b] rounded-xl shadow-lg p-6 flex flex-col items-center text-center border border-blue-900">
+        <img src="{{url_for('static', filename='vishakha.jpg')}}" alt="Team Member Ms. C" class="w-24 h-24 rounded-full object-cover mb-4 border-2 border-green-400" />
+        <h3 class="font-bold text-xl text-blue-200">Vishakha Chudasama</h3>
+        <p class="text-blue-300 text-sm">frontend developer</p>
+        <p class="text-blue-100 text-sm mt-2">Ensuring BioLink is intuitive, accessible, and provides a seamless user journey with best ui.</p>
+      </div>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <section class="relative py-16 px-4">
+    <div class="max-w-4xl mx-auto rounded-2xl bg-gradient-to-r from-blue-900 via-blue-700 to-green-900 p-12 text-center shadow-xl">
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Make Healthcare Smarter?</h2>
+      <p class="text-white text-lg mb-8">Join thousands of users who are taking control of their health with BioLink's intelligent monitoring and rapid response system. Sign up today and experience peace of mind.</p>
+      <a href="{{url_for('signup')}}" class="inline-block px-8 py-4 bg-blue-500 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-blue-600 transition pulse">Create Your BioLink Account</a>
+    </div>
+    <div class="section-divider mt-16 mb-2"></div>
+  </section>
+
+  <footer class="bg-[#111827] text-blue-100 py-10 px-4 mt-12">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+      <div class="flex items-center gap-3">
+        <svg width="32" height="32" viewBox="0 0 48 48" fill="none" aria-label="BioLink Logo">
+          <defs>
+            <linearGradient id="crossBlueGrad2" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#38bdf8"/>
+              <stop offset="1" stop-color="#22d3ee"/>
+            </linearGradient>
+          </defs>
+          <rect x="20" y="6" width="8" height="36" rx="4" fill="url(#crossBlueGrad2)"/>
+          <rect x="6" y="20" width="36" height="8" rx="4" fill="url(#crossBlueGrad2)"/>
+          <rect x="20" y="6" width="8" height="36" rx="4" fill="url(#crossBlueGrad2)" opacity="0.5"/>
+          <rect x="6" y="20" width="36" height="8" rx="4" fill="url(#crossBlueGrad2)" opacity="0.5"/>
+          <rect x="22" y="10" width="4" height="28" rx="2" fill="#bae6fd" opacity="0.7"/>
+          <rect x="10" y="22" width="28" height="4" rx="2" fill="#bae6fd" opacity="0.7"/>
+        </svg>
+        <span class="text-xl font-bold glow-text">BioLink</span>
+      </div>
+      <div class="flex flex-col md:flex-row items-center gap-4 mt-6 md:mt-0 text-center">
+        <a href="#privacy" class="hover:text-blue-400 transition">Privacy Policy</a>
+        <span class="hidden md:block">|</span>
+        <a href="#terms" class="hover:text-blue-400 transition">Terms of Service</a>
+        <span class="hidden md:block">|</span>
+        <a href="#faq" class="hover:text-blue-400 transition">FAQ</a>
+      </div>
+      <div class="flex items-center gap-4 mt-6 md:mt-0">
+        <a href="https://linkedin.com/in/jayraychura" target="_blank" class="hover:text-blue-400" aria-label="LinkedIn"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" stroke="#38bdf8" stroke-width="2"/><path d="M7 10v4M7 7v.01M11 10v4m0 0v-2a2 2 0 1 1 4 0v2" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/></svg></a>
+        <a href="https://github.com/Jay1425" target="_blank" class="hover:text-blue-400" aria-label="GitHub"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="#38bdf8" stroke-width="2"/><path d="M9 17c-4 1.5-4-2.5-2-3m6 3v-1.5a2 2 0 0 0-.5-1.5c3.5-.5 5.5-1.5 5.5-5a4 4 0 0 0-1-2.5c.1-.5.5-2-.1-2.5 0 0-1.3-.5-4.4 1.7a15.4 15.4 0 0 0-4.4-1.7c-.6.5-.2 2-.1 2.5A4 4 0 0 0 4 12.5c0 3.5 2 4.5 5.5 5a2 2 0 0 0-.5 1.5V20" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/></svg></a>
+        <a href="mailto:aivisionaries.team@gmail.com" class="hover:text-blue-400" aria-label="Email"><svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="4" stroke="#38bdf8" stroke-width="2"/><path d="M6 8l6 5 6-5" stroke="#4ade80" stroke-width="2" stroke-linecap="round"/></svg></a>
+      </div>
+    </div>
+    <div class="mt-6 text-center text-sm text-blue-300">
+      <span>Contact: <a href="mailto:aivisionaries.team@gmail.com" class="underline hover:text-blue-400">aivisionaries.team@gmail.com</a></span>
+    </div>
+    <div class="mt-2 text-center text-xs text-blue-500">© 2025 BioLink | Smart Healthcare Monitoring & Emergency Response</div>
+  </footer>
+
+  <script>
+
+    //hospital search
+    let selectedPlace = null;
+
+    function initAutocomplete() {
+      const input = document.getElementById('search-box');
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ['establishment'],
+        fields: ['place_id', 'name', 'geometry'],
+        componentRestrictions: { country: 'in' }
+      });
+
+      // Restrict to hospitals
+      autocomplete.setTypes(['hospital']);
+
+      autocomplete.addListener('place_changed', function () {
+        selectedPlace = autocomplete.getPlace();
+      });
+
+      document.getElementById('go-button').addEventListener('click', function () {
+        if (selectedPlace && selectedPlace.place_id) {
+          const mapsUrl = `https://www.google.com/maps/place/?q=place_id:${selectedPlace.place_id}`;
+          window.open(mapsUrl, '_blank');
+        } else {
+          alert('Please select a hospital from the list.');
+        }
+      });
+    }
+
+    window.onload = initAutocomplete;
+    //complete
+
+    // Navbar functionality is now in the shared component
+
+    // Animated Process Steps on Scroll
+    function revealSteps() {
+      const steps = document.querySelectorAll('.step');
+      const trigger = window.innerHeight * 0.85;
+      steps.forEach((step, i) => {
+        const rect = step.getBoundingClientRect();
+        if (rect.top < trigger && !step.classList.contains('step-visible')) {
+          setTimeout(() => {
+            step.classList.add('step-visible');
+            step.classList.remove('step-hidden');
+          }, i * 200);
+        }
+      });
+    }
+    window.addEventListener('scroll', revealSteps);
+    window.addEventListener('DOMContentLoaded', revealSteps);
+
+    // Animated Counters
+    function animateCounters() {
+      document.querySelectorAll('.counter').forEach(counter => {
+        const target = +counter.getAttribute('data-target');
+        let count = 0;
+        const duration = 2000; // milliseconds
+        const start = performance.now();
+
+        function update(currentTime) {
+          const progress = (currentTime - start) / duration;
+          if (progress < 1) {
+            count = Math.min(target, Math.ceil(progress * target));
+            counter.textContent = count.toLocaleString(); // Add toLocaleString for number formatting
+            requestAnimationFrame(update);
+          } else {
+            counter.textContent = target.toLocaleString();
+          }
+        }
+        requestAnimationFrame(update);
+      });
+    }
+    // Observe counters and animate when they come into view
+    const counterObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounters();
+          observer.disconnect(); // Stop observing once animated
+        }
+      });
+    }, { threshold: 0.5 }); // Trigger when 50% of the element is visible
+
+    document.querySelectorAll('.counter').forEach(counter => {
+      counterObserver.observe(counter);
+    });
+
+    // Carousel for Testimonials
+    const items = document.querySelectorAll('.carousel-item');
+    const dots = document.querySelectorAll('.carousel-dot');
+    let active = 0;
+    function showCarousel(idx) {
+      items.forEach((item, i) => {
+        item.classList.toggle('active', i === idx);
+      });
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('bg-blue-400', i === idx);
+        dot.classList.toggle('bg-blue-700', i !== idx);
+      });
+      active = idx;
+    }
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', () => showCarousel(i));
+    });
+    // Auto-rotate
+    setInterval(() => {
+      showCarousel((active + 1) % items.length);
+    }, 6000);
+
+    // Search Button Ripple Effect
+    document.querySelectorAll('button[type="submit"]').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        // Prevent default form submission for demo
+        e.preventDefault();
+        const ripple = document.createElement('span');
+        ripple.className = 'absolute inset-0 bg-blue-400 opacity-30 rounded-xl animate-ping';
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 400);
+      });
+    });
+    // Info cards entrance animation on scroll
+    function revealInfoCards() {
+      const infoCards = document.querySelectorAll('.info-card');
+      const trigger = window.innerHeight * 0.85;
+      infoCards.forEach((card, i) => {
+        const rect = card.getBoundingClientRect();
+        if (rect.top < trigger && !card.classList.contains('visible')) {
+          setTimeout(() => card.classList.add('visible'), 200 * i);
+        }
+      });
+    }
+    window.addEventListener('scroll', revealInfoCards);
+    window.addEventListener('DOMContentLoaded', revealInfoCards);
+  </script>
+</body>
+</html>

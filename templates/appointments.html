@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Appointment - BioLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glow-text {
+            background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px #38bdf8cc);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
+        [x-cloak] { display: none !important; }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.6) brightness(1.5);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex min-h-screen" x-data="{ 
+    showConfirmModal: false, 
+    selectedDoctor: null, 
+    selectedTime: null,
+    selectedDate: new Date().toISOString().split('T')[0],
+    appointmentNotes: '',
+    specialty: 'All'
+}">
+
+    <!-- User Sidebar Navigation -->
+    {% include 'components/user_sidebar.html' %}
+
+    <main class="ml-16 w-full p-4 md:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold glow-text">Find & Book Your Appointment</h1>
+            <p class="text-blue-300 mt-1">A streamlined process to connect with our top specialists.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="{ specialty: 'All' }">
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                    <h2 class="text-xl font-bold mb-4">
+                        <span :class="selectedDoctor ? 'text-green-400' : 'text-blue-300'">
+                            <span x-show="selectedDoctor">✓</span>
+                            <span x-show="!selectedDoctor">1.</span>
+                        </span>
+                        <span :class="selectedDoctor ? 'text-green-400' : 'text-blue-300'">Step 1: Select a Doctor</span>
+                    </h2>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button @click="specialty = 'All'" :class="specialty === 'All' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600'" class="px-4 py-1.5 text-sm rounded-full transition">All</button>
+                        <button @click="specialty = 'Cardiologist'" :class="specialty === 'Cardiologist' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600'" class="px-4 py-1.5 text-sm rounded-full transition">Cardiologist</button>
+                        <button @click="specialty = 'Neurologist'" :class="specialty === 'Neurologist' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600'" class="px-4 py-1.5 text-sm rounded-full transition">Neurologist</button>
+                        <button @click="specialty = 'Dermatologist'" :class="specialty === 'Dermatologist' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600'" class="px-4 py-1.5 text-sm rounded-full transition">Dermatologist</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for doctor in doctors %}
+                        <template x-if="specialty === 'All' || specialty === '{{ doctor.specialization or doctor.specialty }}'">
+                            
+                            <div 
+                                @click="selectedDoctor = { 
+                                    id: {{ doctor.id }}, 
+                                    name: '{{ doctor.name }}', 
+                                    specialty: '{{ doctor.specialization or doctor.specialty }}',
+                                    specialization: '{{ doctor.specialization or doctor.specialty }}',
+                                    location: '{{ doctor.location or "Location not specified" }}',
+                                    phone: '{{ doctor.phone or "Phone not available" }}'
+                                }"
+                                :class="{ 'ring-2 ring-cyan-500 bg-gray-700': selectedDoctor && selectedDoctor.id === {{ doctor.id }} }"
+                                class="p-4 bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-700 transition flex items-center space-x-4">
+                                
+                                <img src="https://ui-avatars.com/api/?name={{ doctor.name|replace(' ', '+') }}&background=0D8ABC&color=fff&rounded=true" alt="{{ doctor.name }}" class="w-12 h-12 rounded-full">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-white">{{ doctor.name }}</p>
+                                    <p class="text-sm text-cyan-400">{{ doctor.specialization or doctor.specialty }}</p>
+                                    <!-- Real Rating Display -->
+                                    <div class="flex items-center mt-1">
+                                        {% if doctor.get_review_count() > 0 %}
+                                            <div class="flex items-center">
+                                                {% set avg_rating = doctor.get_average_rating() %}
+                                                {% for i in range(1, 6) %}
+                                                    {% if i <= avg_rating %}
+                                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                                    {% elif i - 0.5 <= avg_rating %}
+                                                        <i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-gray-400 text-xs"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="text-xs text-gray-300 ml-1">{{ avg_rating }} ({{ doctor.get_review_count() }} reviews)</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-xs text-gray-400">No reviews yet</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div x-show="selectedDoctor" x-cloak class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                    <h2 class="text-xl font-bold mb-4">
+                        <span :class="selectedDate && selectedTime ? 'text-green-400' : 'text-blue-300'">
+                            <span x-show="selectedDate && selectedTime">✓</span>
+                            <span x-show="!selectedDate || !selectedTime">2.</span>
+                        </span>
+                        <span :class="selectedDate && selectedTime ? 'text-green-400' : 'text-blue-300'">Step 2: Pick a Date & Time for</span>
+                        <span x-text="selectedDoctor ? selectedDoctor.name : ''"></span>
+                    </h2>
+                    <input type="date" name="date" x-model="selectedDate" class="w-full md:w-1/2 bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition mb-4">
+                    
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                        {% for time_slot in ['09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM', '01:00 PM', '01:30 PM', '02:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'] %}
+                        <button @click="selectedTime = '{{ time_slot }}'" :class="selectedTime === '{{ time_slot }}' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600'" class="p-2 text-sm rounded-md transition text-center">{{ time_slot }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div x-show="selectedDoctor && selectedTime" x-cloak class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                    <h2 class="text-xl font-bold text-blue-300 mb-4">
+                        <span class="text-blue-300">3.</span> Step 3: Confirm Booking
+                    </h2>
+                    <textarea name="notes" x-model="appointmentNotes" rows="3" class="w-full bg-gray-700 border-gray-600 text-white rounded-lg p-3 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition" placeholder="Add any notes for the doctor (optional)..."></textarea>
+                    <button @click="
+                        if (!selectedDoctor) {
+                            alert('Please select a doctor first.');
+                            return;
+                        }
+                        if (!selectedDate) {
+                            alert('Please select a date.');
+                            return;
+                        }
+                        if (!selectedTime) {
+                            alert('Please select a time slot.');
+                            return;
+                        }
+                        showConfirmModal = true
+                    " class="mt-4 w-full px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105">
+                        Book Now
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1 space-y-4">
+                <h2 class="text-2xl font-bold text-blue-300">Your Upcoming Appointments</h2>
+                {% for appt in upcoming_appointments %}
+                <div class="bg-gray-800/50 p-4 rounded-xl shadow-lg border border-gray-700 transition-all duration-300">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-bold text-lg text-cyan-300">{{ appt.doctor.name }}</p>
+                            <p class="text-sm text-gray-400">{{ appt.doctor.specialty }}</p>
+                        </div>
+                        <span class="text-xs font-bold py-1 px-3 rounded-full {{ 'bg-green-500/20 text-green-400' if appt.status == 'Confirmed' else 'bg-yellow-500/20 text-yellow-400' }}">{{ appt.status }}</span>
+                    </div>
+                    <div class="text-sm text-gray-300 border-t border-gray-700 pt-2">
+                        <p><strong>Date:</strong> {{ appt.appointment_date.strftime('%B %d, %Y') }} at {{ appt.appointment_date.strftime('%I:%M %p') }}</p>
+                    </div>
+                    <div class="mt-3 flex space-x-2">
+                        {% if appt.appointment_date > now %}
+                            <!-- Future appointments -->
+                            <a href="{{ url_for('patient_video_call', appointment_id=appt.id) }}" class="flex-1 text-center text-sm bg-cyan-600 hover:bg-cyan-700 text-white py-1.5 px-3 rounded-md transition">Join Video Call</a>
+                            <a href="#" class="text-sm bg-gray-700 hover:bg-gray-600 text-white py-1.5 px-3 rounded-md transition">Reschedule</a>
+                        {% else %}
+                            <!-- Past appointments -->
+                            <a href="{{ url_for('submit_review', doctor_id=appt.doctor_id) }}" class="flex-1 text-center text-sm bg-yellow-600 hover:bg-yellow-700 text-white py-1.5 px-3 rounded-md transition">
+                                <i class="fas fa-star mr-1"></i>Review Doctor
+                            </a>
+                            <a href="{{ url_for('patient_video_call', appointment_id=appt.id) }}" class="text-sm bg-cyan-600 hover:bg-cyan-700 text-white py-1.5 px-3 rounded-md transition">View Call</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-gray-800/50 p-5 rounded-xl text-center text-gray-500">
+                    You have no upcoming appointments.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+
+    <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 transition-opacity" @keydown.escape.window="showConfirmModal = false">
+        <div class="bg-gray-800 rounded-2xl shadow-xl w-full max-w-md m-4 p-8 border border-gray-700" @click.outside="showConfirmModal = false">
+            <h3 class="text-2xl font-bold text-center glow-text mb-4">Confirm Your Appointment</h3>
+            <div class="text-gray-300 space-y-3 mb-6">
+                <p><strong>Doctor:</strong> <span x-text="selectedDoctor ? selectedDoctor.name : ''"></span></p>
+                <p><strong>Specialty:</strong> <span x-text="selectedDoctor ? selectedDoctor.specialty : ''"></span></p>
+                <p><strong>Time:</strong> <span x-text="selectedTime || ''"></span> on <span x-text="selectedDate ? new Date(selectedDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'No date selected'"></span></p>
+            </div>
+            <form method="POST" action="{{ url_for('appointments') }}">
+                 {{ form.csrf_token }}
+                 <input type="hidden" name="doctor_id" :value="selectedDoctor ? selectedDoctor.id : ''">
+                 <input type="hidden" name="time" :value="selectedTime || ''">
+                 <input type="hidden" name="date" :value="selectedDate">
+                 <input type="hidden" name="notes" :value="appointmentNotes">
+                 <div class="flex justify-end space-x-4">
+                    <button type="button" @click="showConfirmModal = false" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition">Confirm & Book</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set minimum date to today for the date input
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.querySelector('input[type="date"]');
+            if(dateInput) {
+                dateInput.setAttribute('min', today);
+            }
+        });
+    </script>
+</body>
+</html>

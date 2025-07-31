@@ -1,0 +1,99 @@
+<!-- Public Top Navbar Component -->
+<header id="navbar" class="fixed top-0 left-0 w-full z-50 bg-[#111827]/90 backdrop-blur border-b border-blue-900 transition-all">
+    <nav class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-2">
+            <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-label="BioLink Logo">
+                <defs>
+                    <linearGradient id="crossBlueGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#38bdf8"/>
+                        <stop offset="1" stop-color="#22d3ee"/>
+                    </linearGradient>
+                </defs>
+                <rect x="20" y="6" width="8" height="36" rx="4" fill="url(#crossBlueGrad)"/>
+                <rect x="6" y="20" width="36" height="8" rx="4" fill="url(#crossBlueGrad)"/>
+                <rect x="20" y="6" width="8" height="36" rx="4" fill="url(#crossBlueGrad)" opacity="0.5"/>
+                <rect x="6" y="20" width="36" height="8" rx="4" fill="url(#crossBlueGrad)" opacity="0.5"/>
+                <rect x="22" y="10" width="4" height="28" rx="2" fill="#bae6fd" opacity="0.7"/>
+                <rect x="10" y="22" width="28" height="4" rx="2" fill="#bae6fd" opacity="0.7"/>
+            </svg>
+            <span class="text-2xl font-bold glow-text tracking-tight">BioLink</span>
+        </div>
+        <div class="hidden md:flex items-center gap-6 text-base font-medium">
+            <a href="{{url_for('index')}}" class="{% if request.endpoint == 'index' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} transition nav-link">Home</a>
+            <a href="{{url_for('dashboard')}}" class="{% if request.endpoint == 'dashboard' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} transition nav-link">Dashboard</a>
+            <a href="{{url_for('prediction')}}" class="{% if request.endpoint == 'prediction' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} transition nav-link">AI Prediction</a>
+            <a href="{{url_for('doctor_login')}}" class="{% if request.endpoint == 'doctor_login' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} transition nav-link">Doctor Portal</a>
+            <a href="{{url_for('login')}}" class="{% if request.endpoint == 'login' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} transition nav-link">Login</a>
+            <a href="{{url_for('signup')}}" class="{% if request.endpoint == 'signup' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} transition nav-link">Register</a>
+            <a href="{{url_for('signup')}}" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition pulse">Book Consultation</a>
+        </div>
+        <button id="menuBtn" class="md:hidden flex items-center px-2 py-1 border rounded text-blue-400 border-blue-700 focus:outline-none">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                <path d="M4 6h16M4 12h16M4 18h16" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </nav>
+    <div id="mobileMenu" class="md:hidden hidden bg-[#111827] border-t border-blue-900 px-4 pb-4">
+        <a href="{{url_for('index')}}" class="block py-2 {% if request.endpoint == 'index' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} nav-link-mobile">Home</a>
+        <a href="{{url_for('dashboard')}}" class="block py-2 {% if request.endpoint == 'dashboard' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} nav-link-mobile">Dashboard</a>
+        <a href="{{url_for('prediction')}}" class="block py-2 {% if request.endpoint == 'prediction' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} nav-link-mobile">AI Prediction</a>
+        <a href="{{url_for('login')}}" class="block py-2 {% if request.endpoint == 'login' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} nav-link-mobile">Login</a>
+        <a href="{{url_for('signup')}}" class="block py-2 {% if request.endpoint == 'signup' %}text-blue-400 font-semibold{% else %}hover:text-blue-400{% endif %} nav-link-mobile">Register</a>
+        <a href="{{url_for('signup')}}" class="block py-2 mt-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition pulse text-center">Book Consultation</a>
+    </div>
+    
+    <!-- Navbar JavaScript -->
+    <script>
+        // Mobile menu toggle
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        if (menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Sticky nav slide/fade
+        let lastScroll = 0;
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            const curr = window.scrollY;
+            if (curr > 60 && curr > lastScroll) {
+                navbar.classList.remove('nav-visible');
+                navbar.classList.add('nav-hidden');
+            } else {
+                navbar.classList.remove('nav-hidden');
+                navbar.classList.add('nav-visible');
+            }
+            lastScroll = curr;
+        });
+    </script>
+    
+    <!-- Navbar Styles -->
+    <style>
+        .glow-text {
+            background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px #38bdf8cc);
+        }
+        .nav-hidden { 
+            transform: translateY(-100%); 
+            opacity: 0; 
+            transition: all 0.4s cubic-bezier(.4,0,.2,1); 
+        }
+        .nav-visible { 
+            transform: translateY(0); 
+            opacity: 1; 
+            transition: all 0.4s cubic-bezier(.4,0,.2,1); 
+        }
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 #38bdf866; }
+            50% { box-shadow: 0 0 0 8px #38bdf822; }
+        }
+    </style>
+</header>

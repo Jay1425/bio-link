@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ML Analytics Dashboard - BioLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glow-text {
+            background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px #38bdf8cc);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 8px; }
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .8; }
+        }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(34, 211, 238, 0.05) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex min-h-screen">
+
+    <!-- Doctor Sidebar Navigation -->
+    {% include 'components/doctor_sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="ml-16 w-full p-4 md:p-8">
+        <!-- Header -->
+        <header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-3xl md:text-4xl font-bold glow-text">ML Analytics Dashboard</h1>
+                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    8 AI Models Active
+                </span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-300">Dr. {{ current_user.first_name }} {{ current_user.last_name }}</span>
+            </div>
+        </header>
+        <!-- Model Performance Overview -->
+        <section class="mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="metric-card rounded-xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-cyan-400">Total Predictions</h3>
+                        <p class="text-3xl font-bold text-white">{{ total_predictions }}</p>
+                        <p class="text-sm text-gray-300 mt-1">This month: +{{ monthly_growth }}%</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="metric-card rounded-xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-green-400">Accuracy Rate</h3>
+                        <p class="text-3xl font-bold text-white">{{ overall_accuracy }}%</p>
+                        <p class="text-sm text-gray-300 mt-1">Model average</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="metric-card rounded-xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-orange-400">High Risk Cases</h3>
+                        <p class="text-3xl font-bold text-white">{{ high_risk_cases }}</p>
+                        <p class="text-sm text-gray-300 mt-1">Requiring attention</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="metric-card rounded-xl p-6 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-blue-400">Active Patients</h3>
+                        <p class="text-3xl font-bold text-white">{{ active_patients }}</p>
+                        <p class="text-sm text-gray-300 mt-1">Under monitoring</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Performance Details -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Cancer Type Distribution -->
+            <div class="bg-slate-800 rounded-xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-cyan-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    </svg>
+                    Cancer Type Distribution
+                </h2>
+                <div style="height: 300px;">
+                    <canvas id="cancerDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Prediction Confidence Trends -->
+            <div class="bg-slate-800 rounded-xl shadow-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Prediction Confidence Trends
+                </h2>
+                <div style="height: 300px;">
+                    <canvas id="confidenceTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Model Performance Grid -->
+        <div class="bg-slate-800 rounded-xl shadow-xl p-6 mb-8">
+            <h2 class="text-xl font-bold text-white mb-6 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                AI Model Performance Matrix
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {% for model in model_performance %}
+                <div class="bg-slate-700 rounded-lg p-4 border border-slate-600">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-white">{{ model.name }}</h3>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Active</span>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-300 text-sm">Accuracy</span>
+                            <span class="text-white font-medium">{{ "%.1f"|format(model.accuracy) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-600 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full" style="width: {{ model.accuracy }}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between mt-3">
+                            <span class="text-gray-300 text-sm">Predictions</span>
+                            <span class="text-white font-medium">{{ model.total_predictions }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span class="text-gray-300 text-sm">Avg Confidence</span>
+                            <span class="text-white font-medium">{{ "%.1f"|format(model.avg_confidence) }}%</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Predictions Table -->
+        <div class="bg-slate-800 rounded-xl shadow-xl overflow-hidden">
+            <div class="p-6 border-b border-slate-700">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-cyan-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    Recent AI Predictions
+                </h2>
+                <p class="text-gray-300 mt-2">Latest cancer detection and analysis results</p>
+            </div>
+
+            {% if recent_predictions %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-slate-700">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Patient</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Model Used</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Cancer Type</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Confidence</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Risk Level</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Date</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        {% for prediction in recent_predictions %}
+                        <tr class="hover:bg-slate-700 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                                        {{ prediction.patient.first_name[0] }}{{ prediction.patient.last_name[0] }}
+                                    </div>
+                                    <div class="ml-3">
+                                        <div class="text-white font-medium">{{ prediction.patient.first_name }} {{ prediction.patient.last_name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-white">{{ prediction.model_used }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    {{ prediction.cancer_type }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div class="w-16 bg-gray-600 rounded-full h-2 mr-3">
+                                        <div class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full" style="width: {{ prediction.confidence * 100 }}%"></div>
+                                    </div>
+                                    <span class="text-white text-sm">{{ "%.1f"|format(prediction.confidence * 100) }}%</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if prediction.risk_score >= 0.8 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Critical</span>
+                                {% elif prediction.risk_score >= 0.6 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">High</span>
+                                {% elif prediction.risk_score >= 0.4 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Medium</span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Low</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-gray-300">
+                                {{ prediction.prediction_date.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex space-x-2">
+                                    <a href="{{ url_for('review_prediction', prediction_id=prediction.id) }}" 
+                                       class="text-cyan-400 hover:text-cyan-300 text-sm">Review</a>
+                                    <a href="{{ url_for('view_patient_profile', patient_id=prediction.patient.id) }}" 
+                                       class="text-blue-400 hover:text-blue-300 text-sm">Patient</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-12 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <h3 class="text-xl font-semibold text-white mb-2">No Predictions Yet</h3>
+                <p class="text-gray-400">AI predictions will appear here once patients upload medical reports.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Cancer Type Distribution Chart
+        {% if cancer_distribution %}
+        const distributionCtx = document.getElementById('cancerDistributionChart').getContext('2d');
+        new Chart(distributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ cancer_distribution.labels | tojsonfilter }},
+                datasets: [{
+                    data: {{ cancer_distribution.data | tojsonfilter }},
+                    backgroundColor: [
+                        '#3b82f6', '#ef4444', '#f59e0b', '#10b981', 
+                        '#8b5cf6', '#f97316', '#06b6d4', '#ec4899'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#1e293b'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#ffffff',
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // Confidence Trends Chart
+        {% if confidence_trends %}
+        const confidenceCtx = document.getElementById('confidenceTrendsChart').getContext('2d');
+        new Chart(confidenceCtx, {
+            type: 'line',
+            data: {
+                labels: {{ confidence_trends.dates | tojsonfilter }},
+                datasets: [{
+                    label: 'Average Confidence',
+                    data: {{ confidence_trends.confidence | tojsonfilter }},
+                    borderColor: '#22d3ee',
+                    backgroundColor: 'rgba(34, 211, 238, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff'
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#9ca3af'
+                        },
+                        grid: {
+                            color: '#374151'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#9ca3af'
+                        },
+                        grid: {
+                            color: '#374151'
+                        },
+                        min: 0,
+                        max: 100
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // Auto-refresh every 30 seconds for real-time data
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+    </script>
+        </section>
+    </main>
+</body>
+</html>

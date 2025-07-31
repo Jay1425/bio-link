@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Call with Dr. {{ doctor.name }} | BioLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body class="bg-gray-900">
+    <div class="min-h-screen flex flex-col">
+        <!-- Video Call Header -->
+        <header class="bg-gray-800 text-white p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center mr-3">
+                        <span class="text-sm font-medium">{{ doctor.name[0].upper() }}</span>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-semibold">Video Call with Dr. {{ doctor.name }}</h1>
+                        <p class="text-sm text-gray-300">Room ID: {{ room_id[:8] }}...</p>
+                        <p class="text-xs text-blue-300">Appointment: {{ appointment.appointment_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="call-duration" class="text-sm text-gray-300">00:00</span>
+                    <div id="connection-status" class="flex items-center">
+                        <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                        <span class="text-xs">Connected</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Video Area -->
+        <div class="flex-1 relative bg-black">
+            <!-- Remote Video (Doctor) -->
+            <div id="remote-video-container" class="w-full h-full flex items-center justify-center">
+                <video id="remote-video" class="w-full h-full object-cover" autoplay playsinline></video>
+                <div id="remote-video-placeholder" class="absolute inset-0 flex items-center justify-center bg-gray-800">
+                    <div class="text-center text-white">
+                        <div class="h-32 w-32 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-4xl font-medium">{{ doctor.name[0].upper() }}</span>
+                        </div>
+                        <h3 class="text-xl font-semibold">Dr. {{ doctor.name }}</h3>
+                        <p class="text-gray-300 mt-2">{{ doctor.specialization or doctor.specialty }}</p>
+                        <p class="text-gray-400 mt-1">Waiting for doctor to join...</p>
+                        <div class="mt-4">
+                            <div class="animate-pulse flex space-x-1 justify-center">
+                                <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Local Video (Patient) -->
+            <div id="local-video-container" class="absolute bottom-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden border-2 border-gray-600">
+                <video id="local-video" class="w-full h-full object-cover" autoplay muted playsinline></video>
+                <div id="local-video-placeholder" class="absolute inset-0 flex items-center justify-center bg-gray-700">
+                    <div class="text-center text-white">
+                        <div class="h-16 w-16 rounded-full bg-green-600 flex items-center justify-center mx-auto mb-2">
+                            <span class="text-lg font-medium">{{ current_user.name[0].upper() }}</span>
+                        </div>
+                        <p class="text-xs">{{ current_user.name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call Controls -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                <div class="flex items-center space-x-4 bg-gray-800 bg-opacity-80 rounded-full px-6 py-3">
+                    <button id="mute-audio" class="p-3 bg-gray-600 hover:bg-gray-500 rounded-full transition-colors">
+                        <i class="fas fa-microphone text-white"></i>
+                    </button>
+                    <button id="toggle-video" class="p-3 bg-gray-600 hover:bg-gray-500 rounded-full transition-colors">
+                        <i class="fas fa-video text-white"></i>
+                    </button>
+                    <button id="share-screen" class="p-3 bg-blue-600 hover:bg-blue-500 rounded-full transition-colors">
+                        <i class="fas fa-desktop text-white"></i>
+                    </button>
+                    <button id="end-call" class="p-3 bg-red-600 hover:bg-red-500 rounded-full transition-colors">
+                        <i class="fas fa-phone-slash text-white"></i>
+                    </button>
+                    <button id="open-chat" class="p-3 bg-green-600 hover:bg-green-500 rounded-full transition-colors">
+                        <i class="fas fa-comments text-white"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Sidebar (hidden by default) -->
+        <div id="chat-sidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+            <div class="flex flex-col h-full">
+                <div class="p-4 border-b bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900">Chat with Dr. {{ doctor.name }}</h3>
+                        <button id="close-chat" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="chat-messages" class="flex-1 p-4 overflow-y-auto bg-gray-50">
+                    <!-- Messages will appear here -->
+                </div>
+                <div class="p-4 border-t bg-white">
+                    <div class="flex">
+                        <input type="text" id="chat-input" placeholder="Type your message..." 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="send-message" class="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Appointments Button -->
+        <div class="absolute top-4 left-4">
+            <a href="{{ url_for('appointments') }}" class="bg-gray-800 bg-opacity-80 text-white px-4 py-2 rounded-lg flex items-center hover:bg-gray-700 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Appointments
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Video call functionality
+        const socket = io();
+        const roomId = '{{ room_id }}';
+        let localStream = null;
+        let remoteStream = null;
+        let peerConnection = null;
+        let isAudioMuted = false;
+        let isVideoOff = false;
+        let callStartTime = null;
+        let callDurationInterval = null;
+
+        // DOM elements
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
+        const localVideoPlaceholder = document.getElementById('local-video-placeholder');
+        const remoteVideoPlaceholder = document.getElementById('remote-video-placeholder');
+        const muteAudioBtn = document.getElementById('mute-audio');
+        const toggleVideoBtn = document.getElementById('toggle-video');
+        const shareScreenBtn = document.getElementById('share-screen');
+        const endCallBtn = document.getElementById('end-call');
+        const openChatBtn = document.getElementById('open-chat');
+        const closeChatBtn = document.getElementById('close-chat');
+        const chatSidebar = document.getElementById('chat-sidebar');
+        const chatInput = document.getElementById('chat-input');
+        const sendMessageBtn = document.getElementById('send-message');
+        const chatMessages = document.getElementById('chat-messages');
+        const callDurationSpan = document.getElementById('call-duration');
+
+        // Initialize video call
+        async function initializeVideoCall() {
+            try {
+                // Get user media
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+                
+                localVideo.srcObject = localStream;
+                localVideoPlaceholder.style.display = 'none';
+                
+                // Join the video call room
+                socket.emit('join_video_call', {
+                    room_id: roomId,
+                    user_name: '{{ current_user.name }}',
+                    user_type: 'patient'
+                });
+                
+                // Start call duration timer
+                startCallDurationTimer();
+                
+            } catch (error) {
+                console.error('Error accessing media devices:', error);
+                alert('Unable to access camera/microphone. Please check permissions.');
+            }
+        }
+
+        // Start call duration timer
+        function startCallDurationTimer() {
+            callStartTime = Date.now();
+            callDurationInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                callDurationSpan.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Event listeners
+        muteAudioBtn.addEventListener('click', () => {
+            isAudioMuted = !isAudioMuted;
+            localStream.getAudioTracks().forEach(track => {
+                track.enabled = !isAudioMuted;
+            });
+            muteAudioBtn.innerHTML = isAudioMuted ? 
+                '<i class="fas fa-microphone-slash text-red-400"></i>' : 
+                '<i class="fas fa-microphone text-white"></i>';
+            muteAudioBtn.classList.toggle('bg-red-600', isAudioMuted);
+        });
+
+        toggleVideoBtn.addEventListener('click', () => {
+            isVideoOff = !isVideoOff;
+            localStream.getVideoTracks().forEach(track => {
+                track.enabled = !isVideoOff;
+            });
+            toggleVideoBtn.innerHTML = isVideoOff ? 
+                '<i class="fas fa-video-slash text-red-400"></i>' : 
+                '<i class="fas fa-video text-white"></i>';
+            toggleVideoBtn.classList.toggle('bg-red-600', isVideoOff);
+            localVideoPlaceholder.style.display = isVideoOff ? 'flex' : 'none';
+        });
+
+        endCallBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to end the call?')) {
+                endCall();
+            }
+        });
+
+        openChatBtn.addEventListener('click', () => {
+            chatSidebar.classList.remove('translate-x-full');
+        });
+
+        closeChatBtn.addEventListener('click', () => {
+            chatSidebar.classList.add('translate-x-full');
+        });
+
+        sendMessageBtn.addEventListener('click', sendChatMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                socket.emit('video_call_message', {
+                    room_id: roomId,
+                    message: message,
+                    sender: '{{ current_user.name }}',
+                    sender_type: 'patient'
+                });
+                
+                // Add message to chat
+                addChatMessage(message, '{{ current_user.name }}', 'patient');
+                chatInput.value = '';
+            }
+        }
+
+        function addChatMessage(message, sender, senderType) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-3 ${senderType === 'patient' ? 'text-right' : 'text-left'}`;
+            
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            messageDiv.innerHTML = `
+                <div class="${senderType === 'patient' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'} 
+                            inline-block px-3 py-2 rounded-lg max-w-xs">
+                    <p class="text-sm">${message}</p>
+                    <p class="text-xs opacity-70 mt-1">${time}</p>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function endCall() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (callDurationInterval) {
+                clearInterval(callDurationInterval);
+            }
+            socket.emit('leave_video_call', { room_id: roomId });
+            window.location.href = '{{ url_for("appointments") }}';
+        }
+
+        // Socket event listeners
+        socket.on('video_call_message', (data) => {
+            if (data.sender !== '{{ current_user.name }}') {
+                addChatMessage(data.message, data.sender, data.sender_type);
+            }
+        });
+
+        socket.on('user_joined_video_call', (data) => {
+            console.log('User joined:', data);
+            // Hide placeholder when doctor joins
+            if (data.user_type === 'doctor') {
+                remoteVideoPlaceholder.querySelector('p').textContent = 'Dr. {{ doctor.name }} has joined the call';
+            }
+        });
+
+        socket.on('user_left_video_call', (data) => {
+            console.log('User left:', data);
+            if (data.user_type === 'doctor') {
+                remoteVideoPlaceholder.querySelector('p').textContent = 'Dr. {{ doctor.name }} has left the call';
+                remoteVideoPlaceholder.style.display = 'flex';
+            }
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeVideoCall);
+
+        // Cleanup when page unloads
+        window.addEventListener('beforeunload', () => {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (callDurationInterval) {
+                clearInterval(callDurationInterval);
+            }
+        });
+    </script>
+</body>
+</html>

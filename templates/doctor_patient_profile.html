@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Profile - {{ patient.name }} | BioLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex items-center">
+                        <a href="{{ url_for('doctor_dashboard') }}" class="text-blue-600 hover:text-blue-700">
+                            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+                        </a>
+                        <h1 class="ml-4 text-xl font-semibold text-gray-900">Patient Profile</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-700">Dr. {{ current_user.name }}</span>
+                        <a href="{{ url_for('doctor_logout') }}" class="text-red-600 hover:text-red-700">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+            <!-- Patient Info Card -->
+            <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                {% if patient.profile_pic_url %}
+                                    <img class="h-16 w-16 rounded-full object-cover" src="{{ patient.profile_pic_url }}" alt="{{ patient.name }}">
+                                {% else %}
+                                    <div class="h-16 w-16 rounded-full bg-blue-500 flex items-center justify-center">
+                                        <span class="text-xl font-medium text-white">{{ patient.name[0].upper() }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-4">
+                                <h2 class="text-xl font-bold text-gray-900">{{ patient.name }}</h2>
+                                <p class="text-sm text-gray-600">{{ patient.email }}</p>
+                                <p class="text-sm text-gray-500">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    Member since {{ patient.id if patient.id else 'N/A' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-3">
+                            <a href="{{ url_for('doctor_chat') }}?patient_id={{ patient.id }}" 
+                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                <i class="fas fa-comments mr-2"></i>
+                                Start Chat
+                            </a>
+                            <a href="{{ url_for('doctor_video_call', patient_id=patient.id) }}" 
+                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                                <i class="fas fa-video mr-2"></i>
+                                Video Call
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Appointments History -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            <i class="fas fa-calendar-check mr-2 text-blue-600"></i>
+                            Appointment History
+                        </h3>
+                        
+                        {% if appointments %}
+                            <div class="space-y-3">
+                                {% for appointment in appointments %}
+                                    <div class="border-l-4 pl-4 py-2 {% if appointment.status == 'Confirmed' %}border-green-400 bg-green-50{% elif appointment.status == 'Pending' %}border-yellow-400 bg-yellow-50{% else %}border-gray-400 bg-gray-50{% endif %}">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">
+                                                    {{ appointment.appointment_date.strftime('%B %d, %Y at %I:%M %p') }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-1">{{ appointment.notes or 'No notes provided' }}</p>
+                                            </div>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                {% if appointment.status == 'Confirmed' %}bg-green-100 text-green-800
+                                                {% elif appointment.status == 'Pending' %}bg-yellow-100 text-yellow-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ appointment.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 text-center py-8">No appointment history with this patient</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Medical Reports -->
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            <i class="fas fa-file-medical mr-2 text-red-600"></i>
+                            Medical Reports
+                        </h3>
+                        
+                        {% if reports %}
+                            <div class="space-y-3">
+                                {% for report in reports %}
+                                    <div class="border border-gray-200 rounded-lg p-3 hover:bg-gray-50">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-file-alt text-blue-600 mr-3"></i>
+                                                <div>
+                                                    <p class="text-sm font-medium text-gray-900">{{ report.filename }}</p>
+                                                    <p class="text-xs text-gray-500">{{ report.upload_date.strftime('%B %d, %Y') }}</p>
+                                                </div>
+                                            </div>
+                                            <a href="/uploads/{{ report.filename }}" target="_blank" 
+                                               class="text-blue-600 hover:text-blue-700 text-sm">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 text-center py-8">No medical reports uploaded</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Predictions -->
+            {% if latest_prediction %}
+                <div class="bg-white overflow-hidden shadow rounded-lg mt-6">
+                    <div class="px-4 py-5 sm:p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            <i class="fas fa-brain mr-2 text-purple-600"></i>
+                            Latest AI Health Prediction
+                        </h3>
+                        <!-- We'll add prediction details here when ML is implemented -->
+                        <p class="text-gray-500">AI predictions will be displayed here once ML models are integrated.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

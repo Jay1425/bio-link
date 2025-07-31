@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Schedule | BioLink Doctor Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glow-text {
+            background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px #38bdf8cc);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 8px; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex min-h-screen">
+
+    <aside class="fixed top-0 left-0 h-screen w-16 hover:w-64 bg-gray-900/70 backdrop-blur-md border-r border-gray-700/50 flex flex-col items-center py-6 transition-all duration-300 ease-in-out group z-50">
+        <a href="{{ url_for('index') }}" class="mb-10"><svg class="w-8 h-8" viewBox="0 0 48 48" fill="none" aria-label="BioLink Logo"><defs><linearGradient id="crossBlueGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect x="20" y="6" width="8" height="36" rx="4" fill="url(#crossBlueGrad)"/><rect x="6" y="20" width="36" height="8" rx="4" fill="url(#crossBlueGrad)"/></svg></a>
+        <nav class="flex flex-col space-y-4 w-full">
+            <a href="{{ url_for('doctor_dashboard') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg><span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Dashboard</span></a>
+            <a href="{{ url_for('doctor_schedule') }}" class="flex items-center h-12 px-4 space-x-4 bg-gray-800 text-cyan-400 rounded-r-lg border-l-4 border-cyan-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg><span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">My Schedule</span></a>
+            <a href="{{ url_for('doctor_patients') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21v-1a6 6 0 00-1.78-4.125" /></svg><span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">My Patients</span></a>
+        </nav>
+        <div class="flex flex-col space-y-2 w-full">
+            <a href="{{ url_for('doctor_appointments') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Appointments</span>
+            </a>
+            <a href="{{ url_for('doctor_chat') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Chat</span>
+            </a>
+        </div>
+        <div class="mt-auto w-full">
+            <a href="{{ url_for('doctor_account') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Account</span>
+            </a>
+            <a href="{{ url_for('doctor_logout') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-red-800 hover:text-red-400 rounded-r-lg transition-colors mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="ml-16 w-full p-4 md:p-8">
+        <header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold glow-text">My Schedule</h1>
+                <p class="text-blue-300 mt-1">Manage your appointments and availability</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('doctor_dashboard') }}" class="px-4 py-2 bg-gray-700 text-white rounded-lg shadow hover:bg-gray-600 transition">Back to Dashboard</a>
+                <button onclick="exportSchedule()" class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition">Export Schedule</button>
+            </div>
+        </header>
+
+        <div class="bg-gray-800/50 rounded-xl shadow-xl border border-gray-700">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-blue-300 mb-6 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    2-Week Schedule View
+                </h2>
+
+                <!-- Week 1 -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-200 mb-4 border-b border-gray-600 pb-2">
+                        Current Week ({{ week_dates[0].date.strftime('%B %d') }} - {{ week_dates[6].date.strftime('%B %d') }})
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
+                        {% for day_info in week_dates[:7] %}
+                            <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-4 {% if day_info.date.date() == today.date() %}bg-blue-600/20 border-blue-400{% endif %} hover:shadow-cyan-500/10 transition-all duration-300">
+                                <div class="text-center mb-3">
+                                    <h3 class="font-semibold text-gray-100">{{ day_info.day_name }}</h3>
+                                    <p class="text-sm text-gray-400">{{ day_info.date.strftime('%B %d') }}</p>
+                                    </div>
+
+                                    {% if day_info.appointments %}
+                                        <div class="space-y-2">
+                                            {% for appointment in day_info.appointments %}
+                                                <div class="bg-blue-600/20 border border-blue-400/30 rounded-md p-2 text-xs">
+                                                    <div class="font-medium text-blue-300">{{ appointment.appointment_date.strftime('%I:%M %p') }}</div>
+                                                    <div class="text-gray-300">{{ appointment.patient.name }}</div>
+                                                    <div class="text-cyan-400">{{ appointment.status }}</div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center text-gray-400 text-sm py-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            No appointments
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Week 2 -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-200 mb-4 border-b border-gray-600 pb-2">
+                            Next Week ({{ week_dates[7].date.strftime('%B %d') }} - {{ week_dates[13].date.strftime('%B %d') }})
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4">
+                            {% for day_info in week_dates[7:14] %}
+                                <div class="bg-gray-700/50 border border-gray-600 rounded-lg p-4 hover:shadow-cyan-500/10 transition-all duration-300">
+                                    <div class="text-center mb-3">
+                                        <h3 class="font-semibold text-gray-100">{{ day_info.day_name }}</h3>
+                                        <p class="text-sm text-gray-400">{{ day_info.date.strftime('%B %d') }}</p>
+                                    </div>
+
+                                    {% if day_info.appointments %}
+                                        <div class="space-y-2">
+                                            {% for appointment in day_info.appointments %}
+                                                <div class="bg-green-600/20 border border-green-400/30 rounded-md p-2 text-xs">
+                                                    <div class="font-medium text-green-300">{{ appointment.appointment_date.strftime('%I:%M %p') }}</div>
+                                                    <div class="text-gray-300">{{ appointment.patient.name }}</div>
+                                                    <div class="text-cyan-400">{{ appointment.status }}</div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center text-gray-400 text-sm py-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            No appointments
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Schedule Summary -->
+                    <div class="mt-8 border-t border-gray-600 pt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-blue-600/20 border border-blue-400/30 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-blue-300">
+                                    {{ total_appointments if total_appointments is defined else 0 }}
+                                </div>
+                                <div class="text-sm text-blue-400">Total Appointments (2 Weeks)</div>
+                            </div>
+                            <div class="bg-green-600/20 border border-green-400/30 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-green-300">
+                                    {{ confirmed_appointments if confirmed_appointments is defined else 0 }}
+                                </div>
+                                <div class="text-sm text-green-400">Confirmed Appointments</div>
+                            </div>
+                            <div class="bg-yellow-600/20 border border-yellow-400/30 rounded-lg p-4 text-center">
+                                <div class="text-2xl font-bold text-yellow-300">
+                                    {{ pending_appointments if pending_appointments is defined else 0 }}
+                                </div>
+                                <div class="text-sm text-yellow-400">Pending Approvals</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function exportSchedule() {
+                showNotification('Exporting schedule...', 'info');
+                
+                setTimeout(() => {
+                    showNotification('Schedule exported successfully!', 'success');
+                }, 2000);
+            }
+
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                    type === 'success' ? 'bg-green-600' : 
+                    type === 'error' ? 'bg-red-600' : 
+                    'bg-blue-600'
+                } text-white`;
+                notification.innerHTML = `
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+
+            // Auto-refresh the schedule every 5 minutes to keep data updated
+            setTimeout(function() {
+                location.reload();
+            }, 300000); // 5 minutes
+        </script>
+    </body>
+</html>

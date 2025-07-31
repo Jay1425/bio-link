@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Medical AI Analysis - BioLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glow-text {
+            background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px #38bdf8cc);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 8px; }
+        .cancer-alert { animation: pulse 2s infinite; }
+        .normal-result { border-left: 4px solid #10b981; }
+        .cancer-result { border-left: 4px solid #ef4444; }
+        .warning-result { border-left: 4px solid #f59e0b; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="fixed top-0 left-0 h-screen w-16 hover:w-64 bg-gray-900/70 backdrop-blur-md border-r border-gray-700/50 flex flex-col items-center py-6 transition-all duration-300 ease-in-out group z-50">
+        <a href="{{ url_for('index') }}" class="mb-10">
+            <svg class="w-8 h-8" viewBox="0 0 48 48" fill="none" aria-label="BioLink Logo">
+                <defs><linearGradient id="crossBlueGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#38bdf8"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+                <rect x="20" y="6" width="8" height="36" rx="4" fill="url(#crossBlueGrad)"/>
+                <rect x="6" y="20" width="36" height="8" rx="4" fill="url(#crossBlueGrad)"/>
+            </svg>
+        </a>
+        <nav class="flex flex-col space-y-4 w-full">
+            <a href="{{ url_for('dashboard') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Dashboard</span>
+            </a>
+            <a href="{{ url_for('upload') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Upload Report</span>
+            </a>
+            <a href="{{ url_for('prediction') }}" class="flex items-center h-12 px-4 space-x-4 bg-gray-800 text-cyan-400 rounded-r-lg border-l-4 border-cyan-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">AI Predictions</span>
+            </a>
+        </nav>
+        <div class="mt-auto w-full">
+            <a href="{{ url_for('account') }}" class="flex items-center h-12 px-4 space-x-4 text-gray-400 hover:bg-gray-800 hover:text-cyan-400 rounded-r-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">Account</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-16 w-full p-4 md:p-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold glow-text">🔬 Medical AI Analysis</h1>
+                    <p class="text-blue-300 mt-1">GPU-Powered Cancer Detection • Report: <span class="font-semibold text-white">{{ report.filename }}</span></p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{{ url_for('upload') }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        📤 Upload New Image
+                    </a>
+                    <button onclick="window.print()" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition">
+                        🖨️ Print Report
+                    </button>
+                </div>
+            </div>
+
+            {% if ml_predictions %}
+                <!-- Overall Summary -->
+                {% set cancer_detected = ml_predictions|selectattr('is_cancer_detected', 'equalto', true)|list %}
+                {% set high_risk = ml_predictions|selectattr('risk_level', 'in', ['High', 'Critical'])|list %}
+                
+                <div class="mb-8 p-6 rounded-2xl shadow-2xl border {% if cancer_detected %}bg-red-900/20 border-red-500 cancer-result{% else %}bg-green-900/20 border-green-500 normal-result{% endif %}">
+                    <div class="flex items-center gap-4 mb-4">
+                        {% if cancer_detected %}
+                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center cancer-alert">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-red-400">⚠️ MEDICAL ATTENTION REQUIRED</h2>
+                                <p class="text-red-300">{{ cancer_detected|length }} potentially concerning finding(s) detected</p>
+                            </div>
+                        {% else %}
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-green-400">✅ NO IMMEDIATE CONCERNS</h2>
+                                <p class="text-green-300">AI analysis shows normal findings across all models</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        <div class="bg-gray-800/50 p-3 rounded-lg">
+                            <div class="text-2xl font-bold text-cyan-400">{{ ml_predictions|length }}</div>
+                            <div class="text-sm text-gray-300">Models Analyzed</div>
+                        </div>
+                        <div class="bg-gray-800/50 p-3 rounded-lg">
+                            <div class="text-2xl font-bold {% if cancer_detected %}text-red-400{% else %}text-green-400{% endif %}">{{ cancer_detected|length }}</div>
+                            <div class="text-sm text-gray-300">Cancer Indicators</div>
+                        </div>
+                        <div class="bg-gray-800/50 p-3 rounded-lg">
+                            <div class="text-2xl font-bold {% if high_risk %}text-orange-400{% else %}text-green-400{% endif %}">{{ high_risk|length }}</div>
+                            <div class="text-sm text-gray-300">High Risk</div>
+                        </div>
+                        <div class="bg-gray-800/50 p-3 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-400">{{ "%.1f"|format(ml_predictions|map(attribute='confidence')|max * 100) }}%</div>
+                            <div class="text-sm text-gray-300">Highest Confidence</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Results -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {% for prediction in ml_predictions %}
+                    <div class="bg-gray-800/50 p-6 rounded-2xl shadow-xl border border-gray-700 {% if prediction.is_cancer_detected %}cancer-result{% else %}normal-result{% endif %}">
+                        <!-- Model Header -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-white">{{ prediction.model_description }}</h3>
+                                <p class="text-sm text-gray-400">{{ prediction.medical_category }}</p>
+                            </div>
+                            <div class="text-right">
+                                {% if prediction.is_cancer_detected %}
+                                    <span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-sm font-semibold">
+                                        🚨 ABNORMAL
+                                    </span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm font-semibold">
+                                        ✅ NORMAL
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Medical Interpretation -->
+                        <div class="mb-4 p-4 {% if prediction.is_cancer_detected %}bg-red-900/20{% else %}bg-green-900/20{% endif %} rounded-lg">
+                            <div class="text-lg font-semibold {% if prediction.is_cancer_detected %}text-red-300{% else %}text-green-300{% endif %} mb-2">
+                                {{ prediction.medical_interpretation }}
+                            </div>
+                            <div class="text-sm text-gray-300">
+                                <strong>Result:</strong> {{ prediction.predicted_class }}
+                            </div>
+                            <div class="text-sm text-gray-300">
+                                <strong>Confidence:</strong> {{ "%.1f"|format(prediction.confidence * 100) }}%
+                            </div>
+                        </div>
+
+                        <!-- Confidence Bar -->
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm text-gray-300 mb-1">
+                                <span>Confidence Level</span>
+                                <span>{{ "%.1f"|format(prediction.confidence * 100) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-3">
+                                <div class="h-3 rounded-full {% if prediction.is_cancer_detected %}bg-red-500{% else %}bg-green-500{% endif %}" 
+                                     style="width: {{ prediction.confidence * 100 }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Recommendation -->
+                        <div class="p-3 bg-gray-700/50 rounded-lg">
+                            <div class="text-sm font-semibold text-blue-300 mb-1">Recommendation:</div>
+                            <div class="text-sm text-gray-300">{{ prediction.recommendation }}</div>
+                        </div>
+
+                        <!-- Risk Level -->
+                        <div class="mt-4 flex justify-between items-center">
+                            <div class="text-sm text-gray-400">Risk Level:</div>
+                            <span class="px-2 py-1 rounded text-xs font-semibold
+                                {% if prediction.risk_level == 'Critical' %}bg-red-600 text-white
+                                {% elif prediction.risk_level == 'High' %}bg-orange-600 text-white
+                                {% elif prediction.risk_level == 'Medium' %}bg-yellow-600 text-black
+                                {% else %}bg-green-600 text-white{% endif %}">
+                                {{ prediction.risk_level }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Action Buttons -->
+                {% if cancer_detected %}
+                <div class="mt-8 p-6 bg-red-900/20 border border-red-500 rounded-2xl">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-red-400 mb-2">⚠️ Immediate Action Required</h3>
+                            <p class="text-red-300">Concerning findings detected. Please consult with a medical professional immediately.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <a href="{{ url_for('contact_doctors') }}" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold">
+                                🏥 Find Doctors
+                            </a>
+                            <a href="{{ url_for('appointments') }}" class="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-semibold">
+                                📅 Book Appointment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="mt-8 p-6 bg-green-900/20 border border-green-500 rounded-2xl">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-green-400 mb-2">✅ Good News!</h3>
+                            <p class="text-green-300">No immediate concerns detected. Continue regular health monitoring.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <a href="{{ url_for('upload') }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold">
+                                📤 Upload Another Image
+                            </a>
+                            <a href="{{ url_for('dashboard') }}" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-semibold">
+                                📊 View Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <!-- No Predictions -->
+                <div class="text-center py-12">
+                    <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.595 0-5.229.707-7.364 2.113L2 20l2.864-1.136A7.963 7.963 0 0112 15zm.5-7.5A7.5 7.5 0 107.5 15.5 7.5 7.5 0 0020.5 7.5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-300 mb-2">No AI Analysis Available</h3>
+                    <p class="text-gray-400 mb-6">This report hasn't been processed by our AI models yet.</p>
+                    <a href="{{ url_for('upload') }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold">
+                        📤 Upload Medical Image
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

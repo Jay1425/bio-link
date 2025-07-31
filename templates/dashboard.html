@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - BioLink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .glow-text {
+            background: linear-gradient(90deg, #38bdf8 20%, #22d3ee 50%, #4ade80 80%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px #38bdf8cc);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #22d3ee; }
+        .risk-low { color: #4ade80; border-color: #4ade80; }
+        .risk-medium { color: #facc15; border-color: #facc15; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 flex min-h-screen">
+
+    <!-- User Sidebar Navigation -->
+    {% include 'components/user_sidebar.html' %}
+
+    <main class="ml-16 w-full p-4 md:p-8">
+        <header class="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold glow-text">Welcome back, {{ current_user.name if current_user else 'User' }}!</h1>
+                <p class="text-blue-300 mt-1">Here’s your complete health control panel.</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{{ url_for('contact_doctors') }}" class="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition">
+                    <i class="fas fa-video mr-2"></i>Video Call
+                </a>
+                <a href="{{ url_for('upload') }}" class="px-4 py-2 bg-gray-700 text-white rounded-lg shadow hover:bg-gray-600 transition">Upload Report</a>
+                <a href="{{ url_for('appointments') }}" class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600 transition pulse">Book Appointment</a>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 hover:shadow-cyan-500/10 hover:scale-105 transition-all duration-300">
+                <div class="flex items-center space-x-4"><div class="bg-blue-500/20 p-3 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></div><div><p class="text-gray-400 text-sm">Total Appointments</p><p class="text-2xl font-bold">{{ appointments|length if appointments else '0' }}</p></div></div>
+            </div>
+            <div class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 hover:shadow-cyan-500/10 hover:scale-105 transition-all duration-300">
+                <div class="flex items-center space-x-4"><div class="bg-green-500/20 p-3 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></div><div><p class="text-gray-400 text-sm">Reports Uploaded</p><p class="text-2xl font-bold">{{ reports|length if reports else '0' }}</p></div></div>
+            </div>
+            <div class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700 hover:shadow-cyan-500/10 hover:scale-105 transition-all duration-300">
+                 {% set risk = ai_results[-1].risk_level | lower if ai_results else 'low' %}
+                <div class="flex items-center space-x-4"><div class="p-3 rounded-full bg-{{ 'green' if risk == 'low' else 'yellow' if risk == 'medium' else 'red' }}-500/20"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-{{ 'green' if risk == 'low' else 'yellow' if risk == 'medium' else 'red' }}-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></div><div><p class="text-gray-400 text-sm">Last AI Risk Level</p><p class="text-2xl font-bold risk-{{risk}} capitalize">{{ risk }}</p></div></div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                    <h3 class="text-xl font-bold text-blue-300 mb-4">Live Health Readings</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><p class="text-gray-300">Heart Rate</p><p class="text-2xl font-bold text-green-400">{{ live_heart_rate if live_heart_rate else '72' }}<span class="text-sm ml-1">bpm</span></p></div>
+                        <div class="flex justify-between items-center"><p class="text-gray-300">Oxygen Saturation</p><p class="text-2xl font-bold text-green-400">{{ live_oxygen if live_oxygen else '98' }}<span class="text-sm ml-1">%</span></p></div>
+                        <div class="mt-4 p-3 rounded-lg bg-red-500/20 text-red-300 flex items-center space-x-2 hidden"><span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span><span>Emergency Alert Active!</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                    <h3 class="text-xl font-bold text-blue-300 mb-4">AI Health Insights</h3>
+                    <p class="text-sm text-gray-400 mb-4">Based on your latest report, our AI suggests the following:</p>
+                    <div class="p-4 bg-gray-900/50 rounded-lg text-gray-200">
+                        <p>Your cardiovascular indicators are stable. Maintain consistent physical activity. Consider reducing sodium intake for optimal blood pressure management.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                <h3 class="text-xl font-bold text-blue-300 mb-4">Health Trends</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><canvas id="heartRateChart"></canvas></div>
+                    <div><canvas id="bloodPressureChart"></canvas></div>
+                    <div><canvas id="oxygenChart"></canvas></div>
+                    <div><canvas id="predictionScoresChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+             <div class="lg:col-span-2 bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                <h3 class="text-xl font-bold text-blue-300 mb-4">Upcoming Appointments</h3>
+                {% if upcoming_appointments %}
+                <ul class="space-y-4">
+                    {% for appointment in upcoming_appointments %}
+                    <li class="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="p-2 bg-blue-500/20 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            </div>
+                            <div>
+                                <p class="font-medium">Dr. {{ appointment.doctor.name }}</p>
+                                <p class="text-sm text-gray-400">{{ appointment.appointment_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                <p class="text-xs text-cyan-400">{{ appointment.status }}</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="startVideoCall({{ appointment.doctor.id }})" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition">
+                                <i class="fas fa-video mr-1"></i>Join Call
+                            </button>
+                            <button onclick="sendMessage({{ appointment.doctor.id }})" class="px-3 py-1 bg-cyan-600 hover:bg-cyan-700 text-white text-sm rounded-lg transition">
+                                <i class="fas fa-comment mr-1"></i>Message
+                            </button>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center py-8">
+                    <div class="text-gray-400 mb-4">
+                        <i class="fas fa-calendar-plus text-4xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">No Upcoming Appointments</h3>
+                    <p class="text-gray-400 mb-4">Schedule your next appointment with our healthcare professionals.</p>
+                    <a href="{{ url_for('appointments') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
+                        <i class="fas fa-plus mr-2"></i>Book Appointment
+                    </a>
+                </div>
+                {% endif %}
+             </div>
+             <div class="bg-gray-800/50 p-6 rounded-xl shadow-xl border border-gray-700">
+                <h3 class="text-xl font-bold text-blue-300 mb-4">Quick Actions</h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <a href="{{ url_for('contact_doctors') }}" class="flex items-center justify-center p-4 bg-green-600/20 hover:bg-green-600/30 rounded-lg transition border border-green-600/30">
+                        <i class="fas fa-video text-green-400 text-xl mr-3"></i>
+                        <span class="font-medium text-green-400">Start Video Call</span>
+                    </a>
+                    <button onclick="requestEmergencyHelp()" class="flex items-center justify-center p-4 bg-red-600/20 hover:bg-red-600/30 rounded-lg transition border border-red-600/30">
+                        <i class="fas fa-exclamation-triangle text-red-400 text-xl mr-3"></i>
+                        <span class="font-medium text-red-400">Emergency Help</span>
+                    </button>
+                    <a href="{{ url_for('upload') }}" class="flex items-center justify-center p-4 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition">
+                        <i class="fas fa-upload text-cyan-400 text-xl mr-3"></i>
+                        <span class="font-medium text-cyan-400">Upload Report</span>
+                    </a>
+                    <a href="{{ url_for('map') }}" class="flex items-center justify-center p-4 bg-gray-700/50 hover:bg-gray-700 rounded-lg transition">
+                        <i class="fas fa-map-marker-alt text-cyan-400 text-xl mr-3"></i>
+                        <span class="font-medium text-cyan-400">Find Nearby Doctors</span>
+                    </a>
+                </div>
+                    <button class="flex flex-col items-center justify-center p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-cyan-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg><span class="text-sm font-medium">Alerts</span></button>
+                    <button class="flex flex-col items-center justify-center p-4 bg-gray-700/50 rounded-lg hover:bg-gray-700 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-cyan-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="text-sm font-medium">Reminders</span></button>
+                </div>
+             </div>
+         </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Dummy data for graphs - in a real app, this would come from the backend
+        const graphData = {{ graph_data | tojson if graph_data else '{}' }};
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(156, 163, 175, 0.1)' } },
+                y: { ticks: { color: '#9ca3af' }, grid: { color: 'rgba(156, 163, 175, 0.1)' } }
+            }
+        };
+
+        // Heart Rate Chart
+        new Chart(document.getElementById('heartRateChart'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Heart Rate',
+                    data: graphData.heartRate || [72, 75, 74, 78, 76, 77, 75],
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: { ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: true, text: 'Weekly Heart Rate (bpm)', color: '#d1d5db' } } }
+        });
+
+        // Blood Pressure Chart
+        new Chart(document.getElementById('bloodPressureChart'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    { label: 'Systolic', data: [120, 122, 118, 123, 121, 120, 124], borderColor: '#4ade80', tension: 0.4 },
+                    { label: 'Diastolic', data: [80, 81, 79, 82, 80, 78, 81], borderColor: '#22d3ee', tension: 0.4 }
+                ]
+            },
+            options: { ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: true, text: 'Blood Pressure (mmHg)', color: '#d1d5db' }, legend: { display: true, labels: { color: '#d1d5db' } } } }
+        });
+
+        // Oxygen Chart
+        new Chart(document.getElementById('oxygenChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Oxygen Saturation',
+                    data: graphData.oxygen || [98, 99, 97, 98, 99, 98, 98],
+                    backgroundColor: 'rgba(34, 211, 238, 0.5)',
+                    borderColor: '#22d3ee',
+                    borderWidth: 1
+                }]
+            },
+            options: { ...chartOptions, plugins: { ...chartOptions.plugins, title: { display: true, text: 'Oxygen Saturation (%)', color: '#d1d5db' } } }
+        });
+        
+        // AI Prediction Scores Chart
+        new Chart(document.getElementById('predictionScoresChart'), {
+            type: 'radar',
+            data: {
+                labels: ['Cardio', 'Diabetes', 'Stress', 'Fatigue', 'Nutrition'],
+                datasets: [{
+                    label: 'AI Risk Score',
+                    data: [20, 35, 60, 45, 30],
+                    backgroundColor: 'rgba(248, 113, 113, 0.2)',
+                    borderColor: 'rgb(248, 113, 113)',
+                    pointBackgroundColor: 'rgb(248, 113, 113)',
+                }]
+            },
+            options: { ...chartOptions, scales: { r: { angleLines: { color: 'rgba(156, 163, 175, 0.2)' }, grid: { color: 'rgba(156, 163, 175, 0.2)' }, pointLabels: { color: '#d1d5db' }, ticks: { backdropColor: 'transparent', color: '#d1d5db' } } }, plugins: { ...chartOptions.plugins, title: { display: true, text: 'AI Prediction Scores', color: '#d1d5db' } } }
+        });
+
+        // Video Call Functions
+        function startVideoCall(doctorId) {
+            // Show loading state
+            showNotification('Connecting to video call...', 'info');
+            
+            // Redirect to video call interface
+            window.open(`{{ url_for('contact_doctors') }}?doctor_id=${doctorId}&video=true`, '_blank', 'width=1200,height=800');
+        }
+
+        function sendMessage(doctorId) {
+            // Redirect to chat interface
+            window.location.href = `{{ url_for('contact_doctors') }}?doctor_id=${doctorId}&chat=true`;
+        }
+
+        function requestEmergencyHelp() {
+            if (confirm('Are you experiencing a medical emergency? This will alert emergency services and nearby doctors.')) {
+                showNotification('Emergency alert sent! Help is on the way.', 'success');
+                
+                // In a real implementation, this would:
+                // 1. Send emergency alert to nearby hospitals
+                // 2. Notify registered emergency contacts
+                // 3. Share location with emergency services
+                // 4. Start emergency video call if available
+                
+                // For demo, show emergency contact info
+                setTimeout(() => {
+                    alert('Emergency Services: 911\nPoison Control: 1-800-222-1222\nBioLink Emergency Line: 1-800-BIOLINK');
+                }, 2000);
+            }
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-600' : 
+                type === 'error' ? 'bg-red-600' : 
+                'bg-blue-600'
+            } text-white`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Auto-refresh dashboard data every 30 seconds
+        setInterval(() => {
+            // In a real implementation, this would fetch updated data via AJAX
+            console.log('Refreshing dashboard data...');
+        }, 30000);
+
+    </script>
+</body>
+</html>
