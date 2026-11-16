@@ -56,7 +56,7 @@ if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
     print("   MAIL_PASSWORD:", "***" if app.config['MAIL_PASSWORD'] else None)
     print("   Please set MAIL_USERNAME and MAIL_PASSWORD environment variables for email functionality.")
     print("   See EMAIL_SETUP_GUIDE.md for detailed instructions.")
-app.config['Maps_API_KEY'] = os.environ.get('Maps_API_KEY', 'AIzaSyDfiWj8UuBhy8ANJtgMP3UsKGiJFX5OeJU')
+app.config['Maps_API_KEY'] = os.environ.get('GOOGLE_MAPS_API_KEY', '')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['AVATAR_UPLOAD_FOLDER'] = 'static/avatars'
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
