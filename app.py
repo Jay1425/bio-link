@@ -35,9 +35,11 @@ except ImportError as e:
     print("   To enable ML features, install: pip install tensorflow pillow opencv-python")
 
 # --- App Initialization and Configuration ---
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ.setdefault('OAUTHLIB_INSECURE_TRANSPORT', '0')
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a-default-secret-key-for-dev-only')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(32)
+if os.environ.get('FLASK_ENV') == 'production' and not os.environ.get('SECRET_KEY'):
+    raise RuntimeError('SECRET_KEY must be configured in production')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///biolink.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -57,8 +59,9 @@ if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
 app.config['Maps_API_KEY'] = os.environ.get('Maps_API_KEY', 'AIzaSyDfiWj8UuBhy8ANJtgMP3UsKGiJFX5OeJU')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['AVATAR_UPLOAD_FOLDER'] = 'static/avatars'
-CLIENT_SECRET_FILE = 'client_secret.json'
-REDIRECT_URI = 'http://127.0.0.1:5000/callback'  # Changed back to port 5000
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', 'http://localhost:5000/login/google/authorized')
 SCOPES = ['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email', 'openid']
 
 # --- Initialize Extensions ---
@@ -169,8 +172,18 @@ def send_otp(email, otp):
         flash(f"Email sending failed. For development, your OTP is: {otp}", "warning")
 
 def get_google_flow():
-    return Flow.from_client_secrets_file(
-        client_secrets_file=CLIENT_SECRET_FILE,
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise RuntimeError("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be configured")
+    client_config = {
+        "web": {
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+        }
+    }
+    return Flow.from_client_config(
+        client_config,
         scopes=SCOPES,
         redirect_uri=REDIRECT_URI
     )
