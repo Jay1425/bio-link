@@ -93,3 +93,6 @@ tests/
 *.tmp
 *.temp
 .cache/
+.env.*
+!.env.example
+client_secret*.json
